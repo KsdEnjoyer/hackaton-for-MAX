@@ -1,0 +1,797 @@
+/* === Современный дизайн под MAX mini-app === */
+
+/* Цвета */
+:root {
+  --primary: #5b6dfa;
+  --primary-light: #eef1ff;
+  --accent-green: #48bb78;
+  --accent-orange: #ed8936;
+  --accent-purple: #9f7aea;
+  --text-dark: #1a202c;
+  --text-muted: #718096;
+  --bg-light: #f9fafb;
+  --card-bg: #ffffff;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Базовые стили */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-light);
+  color: var(--text-dark);
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 420px;
+  margin: 0 auto;
+  background: var(--bg-light);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Шапка */
+.header {
+  background: var(--card-bg);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  border-bottom: 1px solid #edf2f7;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.header h1 {
+  font-size: 1.4rem;
+  color: var(--primary);
+  margin-bottom: 5px;
+}
+
+.user-info {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Контент */
+.content {
+  padding: 20px;
+  flex-grow: 1;
+  padding-bottom: 90px;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tab-content {
+  display: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+}
+
+.tab-content.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Карточки */
+.schedule-card,
+.news-item,
+.service-card,
+.club-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  transition: transform 0.2s ease;
+}
+
+.schedule-card:hover,
+.news-item:hover,
+.service-card:hover,
+.club-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Расписание */
+.lesson {
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.lesson-time {
+  font-weight: 600;
+}
+
+.lesson-subject {
+  font-size: 1rem;
+  margin-top: 2px;
+}
+
+.lesson-details {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  display: flex;
+  justify-content: space-between;
+}
+
+.lecture {
+  background: var(--primary);
+}
+.practice {
+  background: var(--accent-orange);
+}
+.lab {
+  background: var(--accent-purple);
+}
+
+/* Новости */
+.news-item h4 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.news-item p {
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.news-item small {
+  color: var(--text-muted);
+}
+
+/* Приоритеты */
+.priority-admin {
+  border-left: 4px solid #fc8181;
+  padding-left: 12px;
+}
+.priority-headman {
+  border-left: 4px solid #68d391;
+  padding-left: 12px;
+}
+.priority-student {
+  border-left: 4px solid #4fd1c7;
+  padding-left: 12px;
+}
+
+/* Сервисы */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.service-card {
+  text-align: center;
+  cursor: pointer;
+}
+
+.service-icon {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.service-card h3 {
+  font-size: 1rem;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.service-card p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* Клубы */
+.clubs-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.club-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.club-icon {
+  font-size: 2rem;
+  color: var(--primary);
+}
+
+.club-info h3 {
+  font-size: 1rem;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.club-info p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Нижняя панель */
+.tabs {
+  display: flex;
+  justify-content: space-around;
+  background: var(--card-bg);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 420px;
+  margin: 0 auto;
+  border-top: 1px solid #e2e8f0;
+  z-index: 10;
+}
+
+.tab-button {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 12px 5px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.3s ease;
+}
+
+.tab-button i {
+  font-size: 1.2rem;
+}
+
+.tab-button.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.tab-button.active i {
+  color: var(--primary);
+}
+
+/* Кнопки и элементы расписания */
+.schedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.schedule-header button {
+  border: none;
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.schedule-header button:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.month-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.month-btn:hover {
+  background: #4657e0;
+}
+
+/* Пустое состояние */
+.empty-schedule,
+.empty-day {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 20px;
+}
+
+.empty-schedule .icon {
+  font-size: 2rem;
+  margin-bottom: 6px;
+}
+
+/* Умный поиск */
+.smart-search {
+  margin-bottom: 20px;
+}
+
+.search-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.search-input-container {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(91, 109, 250, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.filters-btn {
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.filters-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Быстрые фильтры */
+.quick-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  scrollbar-width: none;
+}
+
+.quick-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-btn {
+  background: var(--bg-light);
+  border: 2px solid #e2e8f0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.filter-btn.active,
+.filter-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Умные фильтры */
+.smart-filters {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.smart-filters.hidden {
+  display: none;
+}
+
+.filter-group {
+  margin-bottom: 15px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 0.9rem;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.apply-btn {
+  width: 100%;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.apply-btn:hover {
+  background: #4657e0;
+}
+
+/* Клубы с улучшенным дизайном */
+.club-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.club-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-light);
+}
+
+.club-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.club-info {
+  flex: 1;
+}
+
+.club-info h3 {
+  font-size: 1.1rem;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.club-info p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.club-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.members {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contact {
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+/* Индикаторы активности */
+.activity-high { border-left: 4px solid #48bb78; }
+.activity-medium { border-left: 4px solid #ed8936; }
+.activity-low { border-left: 4px solid #a0aec0; }
+
+/* Нет результатов */
+.no-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+.no-results.hidden {
+  display: none;
+}
+
+.no-results-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  opacity: 0.5;
+}
+
+.reset-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-top: 15px;
+  cursor: pointer;
+}
+
+/* Умный поиск */
+.smart-search {
+  margin-bottom: 20px;
+}
+
+.search-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.search-input-container {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 15px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(91, 109, 250, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.filters-btn {
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.filters-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Быстрые фильтры */
+.quick-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  scrollbar-width: none;
+}
+
+.quick-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-btn {
+  background: var(--bg-light);
+  border: 2px solid #e2e8f0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.filter-btn.active,
+.filter-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Умные фильтры */
+.smart-filters {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.smart-filters.hidden {
+  display: none;
+}
+
+.filter-group {
+  margin-bottom: 15px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 0.9rem;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.apply-btn {
+  width: 100%;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.apply-btn:hover {
+  background: #4657e0;
+}
+
+/* Клубы с улучшенным дизайном */
+.club-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.club-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-light);
+}
+
+.club-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.club-info {
+  flex: 1;
+}
+
+.club-info h3 {
+  font-size: 1.1rem;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.club-info p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.club-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.members {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contact {
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+/* Индикаторы активности */
+.activity-high { border-left: 4px solid #48bb78; }
+.activity-medium { border-left: 4px solid #ed8936; }
+.activity-low { border-left: 4px solid #a0aec0; }
+
+/* Нет результатов */
+.no-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+.no-results.hidden {
+  display: none;
+}
+
+.no-results-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  opacity: 0.5;
+}
+
+.reset-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-top: 15px;
+  cursor: pointer;
+}
