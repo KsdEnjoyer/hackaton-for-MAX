@@ -116,7 +116,7 @@ const mockData = {
       contact: "@dalerka_supremacy_max",
       category: "HAIP",
       tags: ["рисование"],
-      activity: "high", // low, medium, high
+      activity: "high", 
       meetingDay: "пятница"
     },
     { 

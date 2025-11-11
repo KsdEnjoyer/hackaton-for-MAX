@@ -183,30 +183,243 @@ function renderClubs() {
 }
 
 // ⚙️ Сервисы
+// ⚙️ Сервисы - обновленная функция
+// ⚙️ Сервисы - исправленная версия
 function setupServices() {
-    document.querySelectorAll('.service-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const service = card.getAttribute('data-service');
-            const name = card.querySelector('h3').textContent;
-            
-            let message = '';
-            switch(service) {
-                case 'library':
-                    message = '📚 Библиотека\nДоступ к электронным ресурсам и заказ книг';
-                    break;
-                case 'documents':
-                    message = '📄 Документы\nЗаказ справок и академических выписок';
-                    break;
-                case 'dormitory':
-                    message = '🏠 Общежитие\nПодача заявок и решение вопросов';
-                    break;
-                default:
-                    message = `Открыт сервис: ${name}`;
-            }
-            
-            alert(message);
-        });
+    const serviceCards = document.querySelectorAll('.service-card');
+    
+    serviceCards.forEach(card => {
+        // Убираем все старые обработчики
+        card.replaceWith(card.cloneNode(true));
     });
+    
+    // Вешаем новые обработчики
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.addEventListener('click', handleServiceClick);
+    });
+}
+
+// 🔥 ОДИН обработчик для всех сервисов
+function handleServiceClick(event) {
+    const card = event.currentTarget;
+    const service = card.getAttribute('data-service');
+    
+    console.log('🎯 Клик по сервису:', service); // Для отладки
+    
+    // Закрываем все открытые модалки перед открытием новой
+    closeAllServiceModals();
+    
+    switch(service) {
+        case 'library':
+            showServiceModal('📚 Библиотека', 
+                'Доступ к электронным ресурсам, заказ книг и учебников. Онлайн-каталог и продление срока аренды.');
+            break;
+            
+        case 'documents':
+            showServiceModal('📄 Документы', 
+                'Заказ справок об обучении, академических выписок, копий дипломов и других документов.');
+            break;
+            
+        case 'dormitory':
+            showServiceModal('🏠 Общежитие', 
+                'Подача заявок на заселение, решение бытовых вопросов, заявки на ремонт.');
+            break;
+
+        // 🔥 НОВЫЕ СЕРВИСЫ
+        case 'create-club':
+            openCreateClubModal();
+            break;
+            
+        case 'book-room':
+            openRoomBooking();
+            break;
+            
+        case 'events':
+            showEventsCalendar();
+            break;
+    }
+}
+
+// 🔥 Закрываем все модалки сервисов
+function closeAllServiceModals() {
+    const existingModals = document.querySelectorAll('.service-modal');
+    existingModals.forEach(modal => {
+        document.body.removeChild(modal);
+    });
+}
+
+// 🔥 МОДАЛЬНОЕ ОКНО ДЛЯ СЕРВИСОВ
+function showServiceModal(title, content) {
+    const modal = document.createElement('div');
+    modal.className = 'service-modal active';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>${title}</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>${content}</p>
+                <div class="service-actions">
+                    <button class="btn-secondary">Закрыть</button>
+                    <button class="btn-primary">Перейти к сервису</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Обработчики закрытия
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+    
+    modal.querySelector('.btn-secondary').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    });
+}
+
+// 🔥 БРОНИРОВАНИЕ ПОМЕЩЕНИЙ
+function openRoomBooking() {
+    const modal = document.createElement('div');
+    modal.className = 'service-modal active';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🏢 Бронирование помещений</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="booking-form">
+                    <div class="form-group">
+                        <label>Тип помещения:</label>
+                        <select class="form-select">
+                            <option value="">Выберите тип</option>
+                            <option value="lecture">Лекционная аудитория</option>
+                            <option value="conference">Конференц-зал</option>
+                            <option value="meeting">Переговорная</option>
+                            <option value="lab">Лаборатория</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Дата и время:</label>
+                        <input type="datetime-local" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Продолжительность:</label>
+                        <select class="form-select">
+                            <option value="1">1 час</option>
+                            <option value="2">2 часа</option>
+                            <option value="3">3 часа</option>
+                            <option value="4">4 часа</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Цель использования:</label>
+                        <textarea class="form-textarea" placeholder="Опишите цель бронирования..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="service-actions">
+                    <button class="btn-secondary">Отмена</button>
+                    <button class="btn-primary">Забронировать</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    setupModalHandlers(modal);
+}
+
+// 🔥 КАЛЕНДАРЬ МЕРОПРИЯТИЙ
+function showEventsCalendar() {
+    const modal = document.createElement('div');
+    modal.className = 'service-modal active';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📅 Мероприятия университета</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="events-list">
+                    <div class="event-item">
+                        <div class="event-date">
+                            <span class="day">15</span>
+                            <span class="month">Нояб</span>
+                        </div>
+                        <div class="event-info">
+                            <h4>Хакатон MAX</h4>
+                            <p>IT-соревнование для разработчиков</p>
+                            <span class="event-time">🕒 10:00 - 18:00</span>
+                        </div>
+                        <button class="btn-outline">Записаться</button>
+                    </div>
+                    
+                    <div class="event-item">
+                        <div class="event-date">
+                            <span class="day">18</span>
+                            <span class="month">Нояб</span>
+                        </div>
+                        <div class="event-info">
+                            <h4>Научная конференция</h4>
+                            <p>Достижения в области компьютерных наук</p>
+                            <span class="event-time">🕒 14:00 - 17:00</span>
+                        </div>
+                        <button class="btn-outline">Записаться</button>
+                    </div>
+                    
+                    <div class="event-item">
+                        <div class="event-date">
+                            <span class="day">22</span>
+                            <span class="month">Нояб</span>
+                        </div>
+                        <div class="event-info">
+                            <h4>Карьерный день</h4>
+                            <p>Встреча с IT-компаниями</p>
+                            <span class="event-time">🕒 11:00 - 16:00</span>
+                        </div>
+                        <button class="btn-outline">Записаться</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    setupModalHandlers(modal);
+}
+
+// 🔥 ОБЩИЕ ОБРАБОТЧИКИ МОДАЛОК
+function setupModalHandlers(modal) {
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    });
+    
+    // Закрытие по кнопке "Отмена"
+    const cancelBtn = modal.querySelector('.btn-secondary');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+    }
 }
 
 // 🔄 Навигация по неделям
@@ -518,17 +731,6 @@ function renderClubs() {
     renderFilteredClubs(mockData.clubs);
 }
 
-// Добавь в initializeApp()
-function initializeApp() {
-    setupNavigation();
-    updateUserInfo();
-    updateWeekInfo();
-    renderTodaySchedule();
-    renderNews();
-    renderWeekSchedule();
-    renderClubs(); // 🔥 Теперь это запускает умный поиск
-    setupServices();
-}
 
 // 🔥 ФУНКЦИЯ ДЛЯ РАСЧЕТА РЕЛЕВАНТНОСТИ
 function calculateRelevance(club, searchText) {

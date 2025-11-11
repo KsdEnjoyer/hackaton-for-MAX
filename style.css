@@ -171,32 +171,195 @@ body {
 }
 
 /* Сервисы */
+/* Существующие стили сервисов остаются */
 .services-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 20px;
 }
 
 .service-card {
-  text-align: center;
-  cursor: pointer;
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    box-shadow: var(--shadow);
+}
+
+.service-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    box-shadow: 0 8px 25px rgba(91, 109, 250, 0.15);
 }
 
 .service-icon {
-  font-size: 2rem;
-  color: var(--primary);
-  margin-bottom: 8px;
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    display: block;
 }
 
 .service-card h3 {
-  font-size: 1rem;
-  color: var(--text-dark);
-  margin-bottom: 4px;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: var(--text-dark);
 }
 
 .service-card p {
-  color: var(--text-muted);
-  font-size: 0.85rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* Стили для модальных окон сервисов */
+.service-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.service-modal .modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.service-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.service-modal .modal-body {
+    padding: 25px;
+}
+
+/* Формы в модалках */
+.booking-form .form-group {
+    margin-bottom: 20px;
+}
+
+.form-select, .form-input, .form-textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Список мероприятий */
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.event-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: var(--bg-light);
+    border-radius: 12px;
+}
+
+.event-date {
+    text-align: center;
+    background: var(--primary);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    min-width: 60px;
+}
+
+.event-date .day {
+    font-size: 1.2rem;
+    font-weight: bold;
+    display: block;
+}
+
+.event-date .month {
+    font-size: 0.8rem;
+    display: block;
+}
+
+.event-info {
+    flex: 1;
+}
+
+.event-info h4 {
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+}
+
+.event-info p {
+    margin: 0 0 5px 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.event-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Кнопки */
+.service-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.btn-primary, .btn-secondary, .btn-outline {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+}
+
+.btn-secondary {
+    background: var(--bg-light);
+    border: 2px solid #e2e8f0;
+    color: var(--text-muted);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    padding: 8px 16px;
+    flex: none;
 }
 
 /* Клубы */
