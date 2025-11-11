@@ -113,7 +113,11 @@ const mockData = {
       name: "Клуб фанатов Далера", 
       desc: "Мы его верные фанаты! Как же волнительно! >.< ",
       members: 123124,
-      contact: "@dalerka_supremacy_max"
+      contact: "@dalerka_supremacy_max",
+      category: "HAIP",
+      tags: ["рисование"],
+      activity: "high", // low, medium, high
+      meetingDay: "пятница"
     },
     { 
         id: 2,
