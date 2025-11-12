@@ -163,6 +163,8 @@
 </section>
     </main>
 
+    
+
     <!-- Нижняя панель -->
     <nav class="tabs">
       <button class="tab-button active" data-tab="feed">
@@ -184,12 +186,148 @@
     </nav>
   </div>
 
-  <!-- Вкладка Клубы -->
-<!-- Вкладка Клубы -->
+
+  <div id="create-club-modal" class="modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🎯 Создать новый клуб</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        
+        <form id="create-club-form" class="club-form">
+            <!-- Основная информация -->
+            <div class="form-group">
+                <label for="club-name">Название клуба *</label>
+                <input type="text" id="club-name" required maxlength="50" placeholder="Например, Киберспортивный клуб">
+            </div>
+            
+            <div class="form-group">
+                <label for="club-desc">Описание *</label>
+                <textarea id="club-desc" required maxlength="200" placeholder="Расскажите о целях и деятельности клуба..."></textarea>
+                <div class="char-counter"><span id="desc-chars">0</span>/200</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="club-category">Категория *</label>
+                <select id="club-category" required>
+                    <option value="">Выберите категорию</option>
+                    <option value="tech">IT и технологии</option>
+                    <option value="creative">Творчество</option>
+                    <option value="sports">Спорт</option>
+                    <option value="academic">Наука и учеба</option>
+                    <option value="games">Игры</option>
+                    <option value="music">Музыка</option>
+                    <option value="other">Другое</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="club-icon">Эмодзи-иконка *</label>
+                <div class="icon-selector">
+                    <input type="text" id="club-icon" required maxlength="2" placeholder="🎨" value="🎨" readonly
+                          style="text-align: center; font-size: 1.5rem;">
+                    <div class="emoji-picker">
+                        <div class="emoji-categories">
+                            <button type="button" class="emoji-category active" data-category="popular">Популярные</button>
+                            <button type="button" class="emoji-category" data-category="activities">Активности</button>
+                            <button type="button" class="emoji-category" data-category="objects">Объекты</button>
+                        </div>
+                        <div class="emoji-grid" id="emoji-grid">
+                            <!-- Эмодзи будут генерироваться через JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔥 НОВЫЕ ПОЛЯ -->
+            
+            <!-- Формат клуба -->
+            <div class="form-group">
+                <label>Формат клуба *</label>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="club-format" value="open" checked>
+                        <span class="radio-custom"></span>
+                        <span class="radio-label">
+                            <strong>Открытый</strong>
+                            <small>Любой может присоединиться</small>
+                        </span>
+                    </label>
+                    
+                    <label class="radio-option">
+                        <input type="radio" name="club-format" value="approval">
+                        <span class="radio-custom"></span>
+                        <span class="radio-label">
+                            <strong>По заявке</strong>
+                            <small>Нужно одобрение создателя</small>
+                        </span>
+                    </label>
+                    
+                    <label class="radio-option">
+                        <input type="radio" name="club-format" value="closed">
+                        <span class="radio-custom"></span>
+                        <span class="radio-label">
+                            <strong>Закрытый</strong>
+                            <small>Только по приглашению</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Максимальное количество участников -->
+            <div class="form-group">
+                <label for="club-max-members">Максимум участников</label>
+                <select id="club-max-members">
+                    <option value="0">Без ограничений</option>
+                    <option value="10">До 10 человек</option>
+                    <option value="20">До 20 человек</option>
+                    <option value="30">До 30 человек</option>
+                    <option value="50">До 50 человек</option>
+                    <option value="100">До 100 человек</option>
+                </select>
+            </div>
+
+            <!-- День встреч -->
+            <div class="form-group">
+                <label for="club-meeting-day">День встреч *</label>
+                <select id="club-meeting-day" required>
+                    <option value="">Выберите день</option>
+                    <option value="понедельник">Понедельник</option>
+                    <option value="вторник">Вторник</option>
+                    <option value="среда">Среда</option>
+                    <option value="четверг">Четверг</option>
+                    <option value="пятница">Пятница</option>
+                    <option value="суббота">Суббота</option>
+                    <option value="воскресенье">Воскресенье</option>
+                </select>
+            </div>
+
+            <!-- Контактная информация -->
+            <div class="form-group">
+                <label for="club-contact">Контакт (Telegram/Email) *</label>
+                <input type="text" id="club-contact" required placeholder="@username или email@example.com">
+            </div>
+
+            <!-- Теги -->
+            <div class="form-group">
+                <label>Теги (выберите 1-5 тегов) *</label>
+                <div class="tags-hint-form">Нажмите на теги чтобы выбрать их</div>
+                <div class="tags-selector" id="club-tags-selector">
+                    <!-- Теги будут генерироваться автоматически -->
+                </div>
+                <div class="selected-tags-preview" id="club-selected-tags"></div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="cancel-btn">Отмена</button>
+                <button type="submit" class="submit-btn">Создать клуб</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 
-  <!-- Подключения -->
-   <script src="data.js"></script>
+  <script src="data.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

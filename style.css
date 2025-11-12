@@ -781,6 +781,129 @@ body {
 .activity-medium { border-left: 4px solid #ed8936; }
 .activity-low { border-left: 4px solid #a0aec0; }
 
+/* Стили для радио-кнопок */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.radio-option:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.radio-option input[type="radio"] {
+    display: none;
+}
+
+.radio-custom {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e0;
+    border-radius: 50%;
+    margin-top: 2px;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.radio-option input[type="radio"]:checked + .radio-custom {
+    border-color: var(--primary);
+    background: var(--primary);
+}
+
+.radio-option input[type="radio"]:checked + .radio-custom::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.radio-label {
+    flex: 1;
+}
+
+.radio-label strong {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--text-dark);
+}
+
+.radio-label small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* Стили для селекта максимального количества */
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.form-group select:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(91, 109, 250, 0.1);
+}
+
+
+/* Уведомления об успехе */
+.success-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #48bb78;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-icon {
+    font-size: 1.2rem;
+}
+
 /* Нет результатов */
 .no-results {
   text-align: center;
@@ -1042,4 +1165,492 @@ body {
   border-radius: 8px;
   margin-top: 15px;
   cursor: pointer;
+}
+
+/* СТИЛИ ДЛЯ МОДАЛЬНОГО ОКНА СОЗДАНИЯ КЛУБА */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--text-dark);
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.close-modal:hover {
+    background: #f7fafc;
+    color: var(--text-dark);
+}
+
+/* СТИЛИ ДЛЯ ФОРМЫ */
+.club-form {
+    padding: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(91, 109, 250, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 5px;
+}
+
+/* Выбор иконки */
+.icon-selector {
+    position: relative;
+}
+
+.icon-suggestions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.icon-option {
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.icon-option:hover {
+    background: var(--primary-light);
+    transform: scale(1.1);
+}
+
+/* Радио-кнопки */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.radio-option:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.radio-option input[type="radio"] {
+    display: none;
+}
+
+.radio-custom {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e0;
+    border-radius: 50%;
+    margin-top: 2px;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.radio-option input[type="radio"]:checked + .radio-custom {
+    border-color: var(--primary);
+    background: var(--primary);
+}
+
+.radio-option input[type="radio"]:checked + .radio-custom::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.radio-label {
+    flex: 1;
+}
+
+.radio-label strong {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--text-dark);
+}
+
+.radio-label small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* Теги */
+.tags-hint-form {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.tags-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 15px;
+    background: var(--bg-light);
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    margin-bottom: 10px;
+}
+
+.tag-option-form {
+    background: white;
+    border: 2px solid #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.tag-option-form:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+
+.tag-option-form.selected {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: scale(1.05);
+}
+
+.selected-tags-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+    min-height: 50px;
+    padding: 10px;
+    background: #f0fff4;
+    border-radius: 8px;
+    border: 2px dashed #68d391;
+}
+
+.selected-tags-preview:empty {
+    display: none;
+}
+
+.selected-tags-preview:empty::before {
+    content: "Здесь появятся выбранные теги";
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Кнопки формы */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.cancel-btn,
+.submit-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cancel-btn {
+    background: var(--bg-light);
+    border: 2px solid #e2e8f0;
+    color: var(--text-muted);
+}
+
+.cancel-btn:hover {
+    background: #e2e8f0;
+}
+
+.submit-btn {
+    background: var(--primary);
+    border: 2px solid var(--primary);
+    color: white;
+}
+
+.submit-btn:hover {
+    background: #4657e0;
+}
+
+.submit-btn:disabled {
+    background: #a0aec0;
+    border-color: #a0aec0;
+    cursor: not-allowed;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .modal {
+        padding: 10px;
+        align-items: flex-end;
+    }
+    
+    .modal-content {
+        max-height: 90vh;
+        border-radius: 16px 16px 0 0;
+    }
+    
+    .club-form {
+        padding: 20px;
+    }
+}
+
+/* 🔥 СТИЛИ ДЛЯ ВЫБОРА ЭМОДЗИ */
+.emoji-picker {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 5px;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
+.emoji-categories {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+
+.emoji-category {
+    background: none;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.emoji-category.active {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 5px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.emoji-option {
+    font-size: 1.5rem;
+    text-align: center;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.emoji-option:hover {
+    background: var(--primary-light);
+    transform: scale(1.1);
+}
+
+/* 🔥 СТИЛИ ДЛЯ ВЫБРАННЫХ ТЕГОВ */
+.selected-tag {
+    display: inline-flex;
+    align-items: center;
+    background: var(--primary);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin: 2px;
+}
+
+.remove-tag {
+    margin-left: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 2px;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.remove-tag:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* 🔥 СТИЛИ ДЛЯ ОПЦИЙ ТЕГОВ */
+.tag-option-form {
+    background: white;
+    border: 2px solid #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.tag-option-form:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+
+.tag-option-form.selected {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: scale(1.05);
+}
+
+/* 🔥 СТИЛИ ДЛЯ УВЕДОМЛЕНИЙ БРОНИРОВАНИЯ */
+.booking-success {
+    background: #48bb78 !important;
+    max-width: 400px;
+}
+
+.room-info {
+    background: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+    font-size: 0.85rem;
+}
+
+.room-info small {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+/* 🔥 УЛУЧШЕННЫЕ СТИЛИ ДЛЯ ФОРМ БРОНИРОВАНИЯ */
+.booking-form .form-group {
+    margin-bottom: 20px;
+}
+
+.booking-form .form-input:disabled {
+    background-color: #f7fafc;
+    color: #a0aec0;
+    cursor: not-allowed;
+}
+
+/* 🔥 АДАПТИВНОСТЬ ДЛЯ УВЕДОМЛЕНИЙ */
+@media (max-width: 480px) {
+    .booking-success {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
 }
