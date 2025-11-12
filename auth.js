@@ -82,31 +82,32 @@ resetButton(button) {
     }
 
     if (user && university) {
-      this.currentUser = user;
-      this.currentUniversity = university;
-      this.isAuthenticated = true;
-      
-      // Сохраняем в localStorage
-      localStorage.setItem('currentUniversity', JSON.stringify(university));
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      localStorage.setItem('authToken', 'jjk-auth-' + user.id);
-      localStorage.setItem('userType', isStaff ? 'staff' : 'student');
-      
-      console.log('✅ Успешный вход:', user.profile.firstName, 'в', university.name, 'как', isStaff ? 'сотрудник' : 'студент');
-      this.showNotification('success', `Добро пожаловать в ${university.name}!`);
-      
-      // Обновляем UI
-      this.updateUI();
-      
-      return { success: true, user, university, isStaff };
-    } else {
-      this.showNotification('error', 'Неверный UID или пароль');
-      return { success: false, error: 'Неверные учетные данные' };
-    }
+    this.currentUser = user;
+    this.currentUniversity = university;
+    this.isAuthenticated = true;
+    
+    // Сохраняем в localStorage
+    localStorage.setItem('currentUniversity', JSON.stringify(university));
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    localStorage.setItem('authToken', 'jjk-auth-' + user.id);
+    localStorage.setItem('userType', isStaff ? 'staff' : 'student');
+    
+    console.log('✅ Успешный вход:', user.profile.firstName, 'в', university.name, 'как', isStaff ? 'сотрудник' : 'студент');
+    this.showNotification('success', `Добро пожаловать в ${university.name}!`);
+    
+    // 🔥 ТОЛЬКО ПЕРЕКЛЮЧАЕМ ИНТЕРФЕЙС, НЕ ВЫЗЫВАЕМ reinitializeApp
+    console.log('🔄 Переключаем интерфейс на:', isStaff ? 'staff' : 'student');
+    this.switchUserInterface(isStaff ? 'staff' : 'student');
+    
+    return { success: true, user, university, isStaff };
+  } else {
+    this.showNotification('error', 'Неверный UID или пароль');
+    return { success: false, error: 'Неверные учетные данные' };
   }
+}
 
   // 🚪 Выход из системы
-  // 🚪 Выход из системы
+// 🚪 Выход из системы (ИСПРАВЛЕННАЯ ВЕРСИЯ)
 logout() {
     if (this.currentUser) {
         console.log('🚪 Выход:', this.currentUser.profile.firstName);
@@ -117,10 +118,8 @@ logout() {
     this.currentUniversity = null;
     this.isAuthenticated = false;
     
-    // Очищаем localStorage
-    localStorage.removeItem('currentUniversity');
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('authToken');
+    // 🔥 ПОЛНАЯ ОЧИСТКА LOCALSTORAGE
+    localStorage.clear();
     
     // Скрываем панель при выходе
     const tabs = document.querySelector('.tabs');
@@ -128,16 +127,17 @@ logout() {
         tabs.classList.add('hidden');
     }
     
-    // Добавляем надпись "ранний билд" при выходе
-    this.addBuildNotification();
-    
     // Показываем экран входа
     this.showLoginScreen();
 }
 
   // 🔍 Проверка авторизации при загрузке
   // 🔍 Проверка авторизации при загрузке
+// 🔍 Проверка авторизации при загрузке
+// 🔍 Проверка авторизации при загрузке
+// 🔍 Проверка авторизации при загрузке
 checkAuth() {
+  console.log('🔍 checkAuth начат');
   const savedUser = localStorage.getItem('currentUser');
   const savedUniversity = localStorage.getItem('currentUniversity');
 
@@ -147,9 +147,18 @@ checkAuth() {
       this.currentUniversity = JSON.parse(savedUniversity);
       this.isAuthenticated = true;
       
-      console.log('🔍 Автоматический вход:', this.currentUser.profile.firstName);
-      this.updateUI();
-      return true;
+      // 🔥 ОПРЕДЕЛЯЕМ ТИП ПОЛЬЗОВАТЕЛЯ ИЗ ДАННЫХ, А НЕ ИЗ LOCALSTORAGE
+      const userType = this.currentUser.permissions.includes('staff') ? 'staff' : 'student';
+      console.log('🔍 Автоматический вход:', this.currentUser.profile.firstName, 'как', userType);
+      
+      // 🔥 НЕ ВЫЗЫВАЕМ updateUI() ЗДЕСЬ - ЭТО СДЕЛАЕТ initializeApp()
+      // Просто обновляем шапку, но не весь контент
+      console.log('🔍 Вызываем updateHeader()');
+      this.updateHeader();
+      
+      // 🔥 ВОЗВРАЩАЕМ ТИП ПОЛЬЗОВАТЕЛЯ ДЛЯ ДАЛЬНЕЙШЕЙ ОБРАБОТКИ
+      console.log('🔍 checkAuth возвращает:', userType);
+      return userType;
     } catch (error) {
       console.error('❌ Ошибка восстановления сессии:', error);
       this.logout();
@@ -164,25 +173,37 @@ checkAuth() {
 }
 
   // 🎨 Обновление UI после входа/выхода
+// 🎨 Обновление UI после входа/выхода
+// 🎨 Обновление UI после входа/выхода
+// 🎨 Обновление UI после входа/выхода
 updateUI() {
+    console.log('🔄 updateUI вызван, isAuthenticated:', this.isAuthenticated);
+    
+    // 🔥 УБИРАЕМ ПЛАШКУ "РАННИЙ БИЛД" ПРИ АВТОРИЗАЦИИ
+    if (this.isAuthenticated) {
+        this.removeBuildNotification();
+    }
+    
     // Показываем/скрываем панель в зависимости от авторизации
     const tabs = document.querySelector('.tabs');
     if (tabs) {
+        console.log('📌 Панель ДО updateUI:', tabs.classList.contains('hidden'));
+        
         if (this.isAuthenticated) {
             tabs.classList.remove('hidden');
-            // Убираем надпись "ранний билд" после входа
-            this.removeBuildNotification();
+            console.log('📌 Панель ПОСЛЕ remove hidden:', tabs.classList.contains('hidden'));
         } else {
             tabs.classList.add('hidden');
+            console.log('📌 Панель ПОСЛЕ add hidden:', tabs.classList.contains('hidden'));
         }
     }
 
+    // 🔥 ОБНОВЛЯЕМ ТОЛЬКО ШАПКУ, А НЕ ВЕСЬ КОНТЕНТ
     this.updateHeader();
-    this.updateContent();
+    
+    console.log('✅ updateUI завершен');
 }
 
-  // 📱 Обновление шапки
-// 📱 Обновление шапки
 // 📱 Обновление шапки
 updateHeader() {
     const header = document.querySelector('.header');
@@ -239,10 +260,14 @@ updateActiveTabColor() {
 
   // 🔄 Обновление контента
   // 🔄 Обновление контента
+// 🔄 Обновление контента
 updateContent() {
-  // Восстанавливаем стандартную структуру контента
+  console.log('🔄 updateContent вызван для студента');
+  
+  // 🔥 ВОССТАНАВЛИВАЕМ СТАНДАРТНУЮ СТРУКТУРУ КОНТЕНТА ТОЛЬКО ЕСЛИ ЕЕ НЕТ
   const content = document.querySelector('.content');
-  if (content) {
+  if (content && !content.querySelector('#feed')) {
+    console.log('🔄 Создаем структуру контента для студента');
     content.innerHTML = `
       <!-- Лента -->
       <section id="feed" class="tab-content active">
@@ -377,15 +402,70 @@ updateContent() {
         </div>
       </section>
     `;
+  } else {
+    console.log('🔄 Структура контента уже существует, пропускаем создание');
   }
 
-  // 🔄 ВОССТАНАВЛИВАЕМ ВСЕ ОБРАБОТЧИКИ
-  this.reinitializeApp();
+  // 🔥 ПЕРЕИНИЦИАЛИЗАЦИЯ ТОЛЬКО ДЛЯ СТУДЕНТОВ
+  if (typeof determineUserType === 'function' && determineUserType() === 'student') {
+    console.log('🔄 Запускаем reinitializeApp для студента');
+    this.reinitializeApp();
+  } else {
+    console.log('🔄 Пропускаем reinitializeApp (не студент)');
+  }
+}
+
+// 🔥 ПЕРЕКЛЮЧЕНИЕ ИНТЕРФЕЙСА (для использования после входа)
+switchUserInterface(userType) {
+  console.log('🔄 Переключение интерфейса на:', userType);
+  
+  const tabs = document.querySelector('.tabs');
+  const content = document.querySelector('.content');
+  
+  // 🔥 УБИРАЕМ ПЛАШКУ "РАННИЙ БИЛД" ПРИ УСПЕШНОМ ВХОДЕ
+  this.removeBuildNotification();
+  
+  if (userType === 'staff') {
+    // 🔥 СКРЫВАЕМ СТУДЕНЧЕСКУЮ ПАНЕЛЬ ДЛЯ СОТРУДНИКОВ
+    if (tabs) {
+      console.log('📌 Скрываем панель для сотрудника');
+      tabs.classList.add('hidden');
+    }
+    
+    // Очищаем контент и инициализируем интерфейс сотрудника
+    if (content) {
+      console.log('📌 Очищаем контент для сотрудника');
+      content.innerHTML = '';
+    }
+    
+    if (typeof initializeStaffApp === 'function') {
+      console.log('🔄 Запускаем initializeStaffApp');
+      initializeStaffApp();
+    }
+  } else {
+    // 🔥 ПОКАЗЫВАЕМ СТУДЕНЧЕСКУЮ ПАНЕЛЬ ДЛЯ СТУДЕНТОВ
+    if (tabs) {
+      console.log('📌 Показываем панель для студента');
+      tabs.classList.remove('hidden');
+    }
+    
+    // Восстанавливаем студенческий интерфейс
+    console.log('🔄 Вызываем updateContent для студента');
+    this.updateContent();
+  }
 }
 
 // 🔧 ПЕРЕИНИЦИАЛИЗАЦИЯ ВСЕГО ПРИЛОЖЕНИЯ
+// 🔧 ПЕРЕИНИЦИАЛИЗАЦИЯ ВСЕГО ПРИЛОЖЕНИЯ
 reinitializeApp() {
   console.log('🔄 Переинициализация приложения...');
+  
+  // 🔥 УБЕДИМСЯ ЧТО ПАНЕЛЬ ВИДНА
+  const tabs = document.querySelector('.tabs');
+  if (tabs && determineUserType() === 'student') {
+    tabs.classList.remove('hidden');
+    console.log('✅ Панель восстановлена в reinitializeApp');
+  }
   
   // 1. Восстанавливаем навигацию
   if (typeof setupNavigation === 'function') {
@@ -419,12 +499,16 @@ reinitializeApp() {
 }
 
   // 👋 Показать экран входа
-  // 👋 Показать экран входа
+// 👋 Показать экран входа
 showLoginScreen() {
-    // Скрываем нижнюю панель
+    console.log('🔄 showLoginScreen вызван');
+    
+    // Скрываем нижнюю панель ТОЛЬКО ЕСЛИ это экран входа
     const tabs = document.querySelector('.tabs');
     if (tabs) {
+        console.log('📌 Панель в showLoginScreen ДО:', tabs.classList.contains('hidden'));
         tabs.classList.add('hidden');
+        console.log('📌 Панель в showLoginScreen ПОСЛЕ:', tabs.classList.contains('hidden'));
     }
 
     // Добавляем надпись "ранний билд"
@@ -448,6 +532,8 @@ showLoginScreen() {
     document.getElementById('start-login-btn').addEventListener('click', () => {
         this.showUniversitySelection();
     });
+    
+    console.log('✅ showLoginScreen завершен');
 }
 
   // 🏙️ Показать выбор университета

@@ -72,6 +72,75 @@ const mockData = {
     }
   ],
 
+
+staff: [
+  {
+    id: 101,
+    uid: "123",
+    password: "123",
+    university_id: 1,
+    profile: {
+      firstName: "Лексус",
+      lastName: "ДанжерМастерович",
+      avatar: "👩‍🏫",
+      position: "Специалист студофиса",
+      department: "Студенческий отдел",
+      email: "test",
+    },
+    permissions: ["staff"],
+    isActive: true
+  },
+  {
+    id: 102,
+    uid: "staff002", 
+    password: "123",
+    university_id: 1,
+    profile: {
+      firstName: "Иван",
+      lastName: "Сидоров",
+      avatar: "👨‍💼",
+      position: "Администратор",
+      department: "Учебный отдел",
+      email: "ivan.sidorov@4rt.ru"
+    },
+    permissions: ["staff", "admin"],
+    isActive: true
+  },
+  {
+    id: 103,
+    uid: "staff003",
+    password: "123", 
+    university_id: 2,
+    profile: {
+      firstName: "Годжо",
+      lastName: "Сатору",
+      avatar: "😎",
+      position: "Старший преподаватель",
+      department: "Кафедра проклятий", 
+      email: "satoru.gojo@tmp.jp"
+    },
+    permissions: ["staff", "teacher"],
+    isActive: true
+  },
+  {
+    id: 104,
+    uid: "staff004",
+    password: "123",
+    university_id: 2,
+    profile: {
+      firstName: "Нанами", 
+      lastName: "Кэнт",
+      avatar: "👓",
+      position: "Методист",
+      department: "Учебная часть",
+      email: "kent.nanami@tmp.jp"
+    },
+    permissions: ["staff"],
+    isActive: true
+  }
+],
+
+
   news: [
     {
       id: 1,
