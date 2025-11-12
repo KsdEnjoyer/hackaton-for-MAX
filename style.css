@@ -782,48 +782,60 @@ body {
 .activity-low { border-left: 4px solid #a0aec0; }
 
 /* Стили для радио-кнопок */
+/* 🔥 ОБНОВЛЕННЫЕ СТИЛИ ДЛЯ РАДИО-КНОПОК (КЛАССИЧЕСКИЕ КРУЖКИ) */
 .radio-group {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .radio-option {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding: 12px;
+    padding: 15px;
     border: 2px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    background: white;
 }
 
 .radio-option:hover {
     border-color: var(--primary);
     background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(91, 109, 250, 0.1);
 }
 
 .radio-option input[type="radio"] {
     display: none;
 }
 
+/* 🔥 КЛАССИЧЕСКИЕ КРУЖКИ ВМЕСТО ДУГ */
 .radio-custom {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border: 2px solid #cbd5e0;
     border-radius: 50%;
     margin-top: 2px;
     position: relative;
     flex-shrink: 0;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.radio-option:hover .radio-custom {
+    border-color: var(--primary);
 }
 
 .radio-option input[type="radio"]:checked + .radio-custom {
     border-color: var(--primary);
     background: var(--primary);
+    box-shadow: 0 0 0 3px rgba(91, 109, 250, 0.2);
 }
 
+/* 🔥 ТОЧКА ВНУТРИ КРУЖКА ПРИ ВЫБОРЕ */
 .radio-option input[type="radio"]:checked + .radio-custom::after {
     content: '';
     width: 8px;
@@ -834,6 +846,18 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    animation: radioDotAppear 0.2s ease;
+}
+
+@keyframes radioDotAppear {
+    from {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
 }
 
 .radio-label {
@@ -842,15 +866,48 @@ body {
 
 .radio-label strong {
     display: block;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     color: var(--text-dark);
+    font-size: 0.95rem;
 }
 
 .radio-label small {
     color: var(--text-muted);
     font-size: 0.8rem;
+    line-height: 1.4;
+    display: block;
 }
 
+/* 🔥 АНИМАЦИЯ ПРИ ВЫБОРЕ ОПЦИИ */
+.radio-option input[type="radio"]:checked ~ .radio-label {
+    animation: labelHighlight 0.3s ease;
+}
+
+@keyframes labelHighlight {
+    from {
+        transform: translateX(5px);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* 🔥 СТИЛЬ ДЛЯ ВЫБРАННОЙ ОПЦИИ */
+.radio-option input[type="radio"]:checked ~ .radio-custom {
+    animation: radioPulse 0.5s ease;
+}
+
+@keyframes radioPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(91, 109, 250, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(91, 109, 250, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(91, 109, 250, 0);
+    }
+}
 /* Стили для селекта максимального количества */
 .form-group select {
     width: 100%;
@@ -1308,38 +1365,48 @@ body {
 .radio-group {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .radio-option {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding: 12px;
+    padding: 15px;
     border: 2px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    background: white;
 }
+
 
 .radio-option:hover {
     border-color: var(--primary);
     background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(91, 109, 250, 0.1);
 }
 
 .radio-option input[type="radio"] {
     display: none;
 }
 
+
 .radio-custom {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border: 2px solid #cbd5e0;
     border-radius: 50%;
-    margin-top: 2px;
+    margin-top: 3px;
     position: relative;
     flex-shrink: 0;
     transition: all 0.2s ease;
+    background: white;
+}
+
+.radio-option:hover .radio-custom {
+    border-color: var(--primary);
 }
 
 .radio-option input[type="radio"]:checked + .radio-custom {
@@ -1347,10 +1414,11 @@ body {
     background: var(--primary);
 }
 
+/* 🔥 ПРОСТАЯ ТОЧКА В ЦЕНТРЕ */
 .radio-option input[type="radio"]:checked + .radio-custom::after {
     content: '';
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     background: white;
     border-radius: 50%;
     position: absolute;
@@ -1372,6 +1440,8 @@ body {
 .radio-label small {
     color: var(--text-muted);
     font-size: 0.8rem;
+    line-height: 1.4;
+    display: block;
 }
 
 /* Теги */
@@ -1653,4 +1723,914 @@ body {
         right: 10px;
         max-width: none;
     }
+}
+
+/* 🔥 СТИЛИ ДЛЯ УВЕДОМЛЕНИЙ СОЗДАНИЯ КЛУБА */
+.club-creation-success {
+    background: #9f7aea !important; /* Фиолетовый для клубов */
+    max-width: 400px;
+}
+
+/* 🔥 ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ УВЕДОМЛЕНИЙ */
+.success-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #48bb78;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    animation: slideInRight 0.3s ease;
+    border-left: 4px solid rgba(255, 255, 255, 0.3);
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notification-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.notification-text {
+    flex: 1;
+}
+
+.notification-text strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+}
+
+/* 🔥 АДАПТИВНОСТЬ ДЛЯ УВЕДОМЛЕНИЙ */
+@media (max-width: 480px) {
+    .success-notification {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+        top: 10px;
+    }
+    
+    .club-creation-success,
+    .booking-success {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* 🔥 СТИЛИ ДЛЯ КАРТОЧЕК МЕРОПРИЯТИЙ */
+.event-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+}
+
+.event-item:hover {
+    border-color: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.event-date {
+    text-align: center;
+    background: linear(135deg, var(--primary), #6b7dfa);
+    color: white;
+    padding: 12px;
+    border-radius: 12px;
+    min-width: 70px;
+    flex-shrink: 0;
+}
+
+.event-date .day {
+    font-size: 1.4rem;
+    font-weight: bold;
+    display: block;
+    line-height: 1;
+}
+
+.event-date .month {
+    font-size: 0.85rem;
+    display: block;
+    text-transform: lowercase;
+    opacity: 0.9;
+}
+
+.event-info {
+    flex: 1;
+}
+
+.event-info h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+    color: var(--text-dark);
+}
+
+.event-info p {
+    margin: 0 0 8px 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.event-time {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 8px;
+}
+
+.event-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 0.8rem;
+}
+
+.participants-count {
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.event-status {
+    color: #48bb78;
+    font-weight: 500;
+}
+
+/* 🔥 СТИЛИ ДЛЯ КНОПКИ ЗАПИСИ */
+.event-register-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.event-register-btn:hover:not(:disabled) {
+    background: #4657e0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(91, 109, 250, 0.3);
+}
+
+/* 🔥 АНИМАЦИИ ДЛЯ ПРОЦЕССА ЗАПИСИ */
+.event-register-btn.registering {
+    background: #ed8936;
+    transform: scale(0.95);
+}
+
+.event-register-btn.registered {
+    background: #48bb78;
+    transform: scale(1);
+    box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.3);
+}
+
+.event-register-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-text, .btn-icon {
+    transition: all 0.3s ease;
+}
+
+.event-register-btn.registering .btn-icon {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* 🔥 УВЕДОМЛЕНИЕ ДЛЯ ЗАПИСИ НА МЕРОПРИЯТИЕ */
+.event-registration-success {
+    background: linear(135deg, #9f7aea, #7e6bc9) !important;
+    max-width: 350px;
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* 🔥 АДАПТИВНОСТЬ ДЛЯ МЕРОПРИЯТИЙ */
+@media (max-width: 480px) {
+    .event-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .event-stats {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .event-register-btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .event-registration-success {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
+}
+
+/* 🔥 ФИЛЬТРЫ МЕРОПРИЯТИЙ */
+.events-filter {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.events-filter .filter-btn {
+    background: var(--bg-light);
+    border: 2px solid #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.events-filter .filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* 🔥 УЛУЧШЕННЫЕ КАРТОЧКИ МЕРОПРИЯТИЙ */
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.event-type {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.event-organizer {
+    margin-top: 8px;
+}
+
+.event-organizer small {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+/* 🔥 СТИЛИ ДЛЯ РАЗНЫХ ТИПОВ МЕРОПРИЯТИЙ */
+.event-type.hackathon { background: #fed7d7; color: #c53030; }
+.event-type.conference { background: #c6f6d5; color: #276749; }
+.event-type.workshop { background: #feebc8; color: #744210; }
+.event-type.career { background: #c3dafe; color: #2c5282; }
+
+
+/* 🔥 СТИЛИ ДЛЯ КНОПКИ ОТПИСКИ */
+.event-unregister-btn {
+    background: #fc8181;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.event-unregister-btn:hover:not(:disabled) {
+    background: #e53e3e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(252, 129, 129, 0.3);
+}
+
+.event-unregister-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.event-unregister-btn.unregistering {
+    background: #ed8936;
+    transform: scale(0.95);
+}
+
+/* 🔥 КОНТЕЙНЕР ДЛЯ ДЕЙСТВИЙ МЕРОПРИЯТИЯ */
+.event-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* 🔥 ИНФОРМАЦИЯ О ЗАПИСИ */
+.registration-info {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #c6f6d5;
+    border: 1px solid #68d391;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.registration-info small {
+    color: #276749;
+    font-weight: 500;
+}
+
+/* 🔥 УВЕДОМЛЕНИЕ ДЛЯ ОТПИСКИ */
+.event-unregistration-success {
+    background: linear(135deg, #fc8181, #e53e3e) !important;
+    max-width: 350px;
+}
+
+/* 🔥 АДАПТИВНОСТЬ ДЛЯ КНОПОК ОТПИСКИ */
+@media (max-width: 480px) {
+    .event-actions {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .event-unregister-btn {
+        width: 100%;
+    }
+    
+    .event-unregistration-success {
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
+}
+
+/* 🔥 АНИМАЦИЯ ДЛЯ ПРОЦЕССА ОТПИСКИ */
+.event-unregister-btn.unregistering .btn-icon {
+    animation: pulse 1s infinite;
+}
+
+/* 🔥 УЛУЧШЕННЫЕ СТИЛИ ДЛЯ ЗАРЕГИСТРИРОВАННЫХ МЕРОПРИЯТИЙ */
+.event-item.registered {
+    border-left: 4px solid #48bb78;
+    background: linear-gradient(135deg, #ffffff, #f0fff4);
+}
+
+.event-item.registered .event-date {
+    background: linear(135deg, #48bb78, #68d391);
+}
+
+
+/* 🔐 СТИЛИ АВТОРИЗАЦИИ */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  padding: 20px;
+}
+
+.welcome-card {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  max-width: 400px;
+  width: 100%;
+}
+
+.welcome-card h2 {
+  margin-bottom: 10px;
+  color: var(--text-dark);
+}
+
+.welcome-card p {
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+/* Шаги выбора университета */
+.university-flow .step {
+  display: none;
+}
+
+.university-flow .step.active {
+  display: block;
+}
+
+.cities-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.city-card {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.city-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.city-emoji {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.city-name {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.universities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.university-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.university-card:hover {
+  border-color: var(--primary);
+}
+
+.uni-logo {
+  font-size: 2rem;
+}
+
+.uni-info {
+  flex: 1;
+}
+
+.uni-info h4 {
+  margin: 0 0 5px 0;
+  color: var(--text-dark);
+}
+
+.uni-info p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.select-uni-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.header-authenticated {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.logout-btn {
+  background: #fc8181;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+/* Уведомления */
+.auth-notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  z-index: 1002;
+  animation: slideDown 0.3s ease;
+}
+
+.auth-notification.success {
+  background: #48bb78;
+}
+
+.auth-notification.error {
+  background: #fc8181;
+}
+
+.auth-notification.info {
+  background: #4299e1;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 🎭 СТИЛИ ДЛЯ ПУСТЫХ СОСТОЯНИЙ */
+.no-events, .no-clubs {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+}
+
+.no-events-icon, .no-clubs-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.no-events h3, .no-clubs h3 {
+    margin-bottom: 10px;
+    color: var(--text-dark);
+}
+
+.no-clubs {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 40px;
+    margin: 20px 0;
+}
+
+/* 🔍 СТИЛИ ДЛЯ НОВОГО ОКНА АВТОРИЗАЦИИ */
+
+/* Поле поиска */
+.search-input.large {
+    padding: 16px 50px 16px 20px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+}
+
+.search-input-container.large {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-input-container.large .search-icon {
+    right: 20px;
+    font-size: 1.2rem;
+}
+
+/* Результаты поиска */
+.search-results {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: white;
+}
+
+.university-result {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.university-result:hover {
+    background: #f8fafc;
+}
+
+.university-result:last-child {
+    border-bottom: none;
+}
+
+.uni-result-logo {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.uni-result-info {
+    flex: 1;
+}
+
+.uni-result-info h4 {
+    margin: 0 0 5px 0;
+    color: var(--text-dark);
+    font-size: 1rem;
+}
+
+.uni-result-info p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.select-uni-btn.result {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+/* Популярные города */
+.popular-cities {
+    margin-top: 25px;
+}
+
+.popular-cities h5 {
+    margin-bottom: 12px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.cities-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.city-chip {
+    background: var(--primary-light);
+    border: 2px solid var(--primary-light);
+    color: var(--primary);
+    padding: 10px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.city-chip:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Бейдж выбранного университета */
+.selected-university-badge {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: var(--primary-light);
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.uni-badge-logo {
+    font-size: 2.5rem;
+}
+
+.uni-badge-info {
+    flex: 1;
+}
+
+.uni-badge-info strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-dark);
+}
+
+.uni-badge-info span {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Кнопка входа */
+.login-btn.large {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.password-hint {
+    text-align: center;
+    margin-top: 1px !important; /* ⬇️ УМЕНЬШИЛИ С 10px ДО 5px */
+
+}
+
+.login-btn.beautiful {
+    margin-top: 20px !important; /* Соответственно уменьшаем отступ кнопки */
+}
+
+.password-hint code {
+    background: #edf2f7;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+/* Сообщение "нет результатов" */
+.no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+}
+
+.no-results-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.no-results h4 {
+    margin-bottom: 8px;
+    color: var(--text-dark);
+}
+
+/* 🎨 КРАСИВАЯ КНОПКА ВХОДА */
+/* 🎨 БАЗОВЫЕ СТИЛИ КНОПКИ ВХОДА - ГАРАНТИРОВАННО РАБОЧИЕ */
+.login-btn.beautiful {
+    width: 100%;
+    background: #5b6dfa !important;
+    color: white !important;
+    border: none !important;
+    padding: 14px 20px !important;
+    border-radius: 12px !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+    box-shadow: 0 4px 15px rgba(91, 109, 250, 0.25) !important;
+    height: 48px;
+    position: relative;
+    text-decoration: none !important;
+}
+
+/* Ховер состояния */
+.login-btn.beautiful:hover {
+    background: #4657e0 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(91, 109, 250, 0.35) !important;
+}
+
+/* Активное состояние */
+.login-btn.beautiful:active {
+    transform: translateY(0) !important;
+}
+
+/* Заблокированная кнопка */
+.login-btn.beautiful:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Контент кнопки */
+.btn-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-text {
+    font-weight: 600;
+}
+
+.btn-arrow {
+    font-weight: bold;
+    transition: transform 0.3s ease;
+}
+
+.login-btn.beautiful:hover .btn-arrow {
+    transform: translateX(3px);
+}
+
+/* Спиннер загрузки */
+.btn-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: none;
+}
+
+.login-btn.beautiful.loading .btn-spinner {
+    display: block;
+}
+
+.login-btn.beautiful.loading .btn-content {
+    display: none;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Состояния */
+.login-btn.beautiful.success {
+    background: #48bb78 !important;
+    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.25) !important;
+}
+
+.login-btn.beautiful.error {
+    background: #fc8181 !important;
+    box-shadow: 0 4px 15px rgba(252, 129, 129, 0.25) !important;
+    animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+.login-btn-spacing {
+    margin-bottom: 10px !important;
+    display: block;
 }

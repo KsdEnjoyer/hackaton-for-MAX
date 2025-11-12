@@ -6,6 +6,7 @@
   <title>Учебный портал MAX</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+<script src="auth.js"></script>
 <body>
   <div class="app">
     <!-- Шапка -->
@@ -242,33 +243,34 @@
             <!-- 🔥 НОВЫЕ ПОЛЯ -->
             
             <!-- Формат клуба -->
+            <!-- Формат клуба -->
             <div class="form-group">
                 <label>Формат клуба *</label>
                 <div class="radio-group">
                     <label class="radio-option">
                         <input type="radio" name="club-format" value="open" checked>
-                        <span class="radio-custom"></span>
+                        <span class="radio-custom" aria-hidden="true"></span>
                         <span class="radio-label">
-                            <strong>Открытый</strong>
-                            <small>Любой может присоединиться</small>
+                            <strong>🔓 Открытый</strong>
+                            <small>Любой может присоединиться без одобрения</small>
                         </span>
                     </label>
                     
                     <label class="radio-option">
                         <input type="radio" name="club-format" value="approval">
-                        <span class="radio-custom"></span>
+                        <span class="radio-custom" aria-hidden="true"></span>
                         <span class="radio-label">
-                            <strong>По заявке</strong>
-                            <small>Нужно одобрение создателя</small>
+                            <strong>📝 По заявке</strong>
+                            <small>Нужно одобрение создателя клуба</small>
                         </span>
                     </label>
                     
                     <label class="radio-option">
                         <input type="radio" name="club-format" value="closed">
-                        <span class="radio-custom"></span>
+                        <span class="radio-custom" aria-hidden="true"></span>
                         <span class="radio-label">
-                            <strong>Закрытый</strong>
-                            <small>Только по приглашению</small>
+                            <strong>🔒 Закрытый</strong>
+                            <small>Только по приглашению создателя</small>
                         </span>
                     </label>
                 </div>

@@ -6,14 +6,25 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
-    setupNavigation();
-    updateUserInfo();
-    updateWeekInfo();
-    renderTodaySchedule();
-    renderNews();
-    renderWeekSchedule();
-    renderClubs();
-    setupServices();
+  console.log('🚀 Инициализация приложения...');
+  
+  // Проверяем авторизацию
+  const isAuthenticated = authService.checkAuth();
+  
+  if (!isAuthenticated) return;
+  
+  // Загружаем сохраненные данные
+  if (typeof loadEventsFromLocalStorage === 'function') loadEventsFromLocalStorage();
+  if (typeof loadClubsFromLocalStorage === 'function') loadClubsFromLocalStorage();
+  
+  // Инициализируем приложение
+  setupNavigation();
+  setupServices();
+  updateWeekInfo();
+  renderTodaySchedule();
+  renderNews();
+  renderWeekSchedule();
+  renderClubs();
 }
 
 // 🔥 ДОБАВЬ ЭТИ ПЕРЕМЕННЫЕ ПОСЛЕ mockData
@@ -65,133 +76,113 @@ function updateWeekInfo() {
 
 // 📅 Расписание на сегодня
 function renderTodaySchedule() {
-    const todayContainer = document.getElementById('today-schedule');
-    if (!todayContainer) return;
+  const todayContainer = document.getElementById('today-schedule');
+  if (!todayContainer) return;
 
-    todayContainer.innerHTML = '';
+  todayContainer.innerHTML = '';
 
-    // Находим сегодняшний день
-    const today = new Date().toISOString().split('T')[0];
-    const todayData = mockData.schedule.find(day => day.date === today);
+  // Находим сегодняшний день
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Берем расписание текущего университета
+  const universitySchedule = getUniversityData('schedule');
+  const todayData = universitySchedule.find(day => day.date === today);
 
-    if (!todayData || todayData.lessons.length === 0) {
-        todayContainer.innerHTML = `
-            <div class="empty-schedule">
-                <div class="icon">🎉</div>
-                <p>На сегодня пар нет!</p>
-            </div>
-        `;
-        return;
-    }
+  if (!todayData || todayData.lessons.length === 0) {
+    todayContainer.innerHTML = `
+      <div class="empty-schedule">
+        <div class="icon">🎉</div>
+        <p>На сегодня пар нет!</p>
+      </div>
+    `;
+    return;
+  }
 
-    todayData.lessons.forEach(lesson => {
-        const div = document.createElement('div');
-        div.className = `lesson ${lesson.type}`;
-        div.innerHTML = `
-            <div class="lesson-time">${lesson.time}</div>
-            <div class="lesson-subject">${lesson.subject}</div>
-            <div class="lesson-details">
-                <span>${lesson.teacher}</span>
-                <span>${lesson.room}</span>
-            </div>
-        `;
-        todayContainer.appendChild(div);
-    });
+  todayData.lessons.forEach(lesson => {
+    const div = document.createElement('div');
+    div.className = `lesson ${lesson.type}`;
+    div.innerHTML = `
+      <div class="lesson-time">${lesson.time}</div>
+      <div class="lesson-subject">${lesson.subject}</div>
+      <div class="lesson-details">
+        <span>${lesson.teacher}</span>
+        <span>${lesson.room}</span>
+      </div>
+    `;
+    todayContainer.appendChild(div);
+  });
 }
 
 // 📰 Новости
 function renderNews() {
-    const newsList = document.getElementById('news-list');
-    if (!newsList) return;
+  const newsList = document.getElementById('news-list');
+  if (!newsList) return;
 
-    newsList.innerHTML = '';
+  newsList.innerHTML = '';
 
-    // Сортируем новости по приоритету
-    const sortedNews = [...mockData.news].sort((a, b) => {
-        const priorityOrder = { admin: 3, headman: 2, student: 1 };
-        return priorityOrder[b.priority] - priorityOrder[a.priority];
-    });
+  // Берем новости текущего университета
+  const universityNews = getUniversityData('news');
 
-    sortedNews.forEach(news => {
-        const div = document.createElement('div');
-        div.className = `news-item priority-${news.priority}`;
-        div.innerHTML = `
-            <h4>${news.title}</h4>
-            <p>${news.content}</p>
-            <small>${news.author} • ${formatDate(news.date)}</small>
-        `;
-        newsList.appendChild(div);
-    });
+  // Сортируем новости по приоритету
+  const sortedNews = [...universityNews].sort((a, b) => {
+    const priorityOrder = { admin: 3, headman: 2, student: 1 };
+    return priorityOrder[b.priority] - priorityOrder[a.priority];
+  });
+
+  sortedNews.forEach(news => {
+    const div = document.createElement('div');
+    div.className = `news-item priority-${news.priority}`;
+    div.innerHTML = `
+      <h4>${news.title}</h4>
+      <p>${news.content}</p>
+      <small>${news.author} • ${formatDate(news.date)}</small>
+    `;
+    newsList.appendChild(div);
+  });
 }
 
 // 📚 Расписание недели
+// 📚 Расписание недели
 function renderWeekSchedule() {
-    const grid = document.getElementById('schedule-grid');
-    if (!grid) return;
+  const grid = document.getElementById('schedule-grid');
+  if (!grid) return;
 
-    grid.innerHTML = '';
+  grid.innerHTML = '';
 
-    mockData.schedule.forEach(dayData => {
-        const dayDiv = document.createElement('div');
-        dayDiv.className = 'schedule-card';
-        
-        dayDiv.innerHTML = `
-            <h3>${dayData.day}</h3>
-            <small>${formatDate(dayData.date)}</small>
+  // Берем расписание текущего университета
+  const universitySchedule = getUniversityData('schedule');
+
+  universitySchedule.forEach(dayData => {
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'schedule-card';
+    
+    dayDiv.innerHTML = `
+      <h3>${dayData.day}</h3>
+      <small>${formatDate(dayData.date)}</small>
+    `;
+
+    if (dayData.lessons.length > 0) {
+      dayData.lessons.forEach(lesson => {
+        const lessonEl = document.createElement('div');
+        lessonEl.className = `lesson ${lesson.type}`;
+        lessonEl.innerHTML = `
+          <div class="lesson-time">${lesson.time}</div>
+          <div class="lesson-subject">${lesson.subject}</div>
+          <div class="lesson-details">
+            <span>${lesson.teacher}</span>
+            <span>${lesson.room}</span>
+          </div>
         `;
+        dayDiv.appendChild(lessonEl);
+      });
+    } else {
+      dayDiv.innerHTML += `<div class="empty-day">Нет занятий</div>`;
+    }
 
-        if (dayData.lessons.length > 0) {
-            dayData.lessons.forEach(lesson => {
-                const lessonEl = document.createElement('div');
-                lessonEl.className = `lesson ${lesson.type}`;
-                lessonEl.innerHTML = `
-                    <div class="lesson-time">${lesson.time}</div>
-                    <div class="lesson-subject">${lesson.subject}</div>
-                    <div class="lesson-details">
-                        <span>${lesson.teacher}</span>
-                        <span>${lesson.room}</span>
-                    </div>
-                `;
-                dayDiv.appendChild(lessonEl);
-            });
-        } else {
-            dayDiv.innerHTML += `<div class="empty-day">Нет занятий</div>`;
-        }
-
-        grid.appendChild(dayDiv);
-    });
+    grid.appendChild(dayDiv);
+  });
 }
 
-// 🎭 Клубы
-function renderClubs() {
-    const container = document.getElementById('clubs-list');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    mockData.clubs.forEach(club => {
-        const div = document.createElement('div');
-        div.className = 'club-card';
-        div.innerHTML = `
-            <div class="club-icon">${club.icon}</div>
-            <div class="club-info">
-                <h3>${club.name}</h3>
-                <p>${club.desc}</p>
-                <div class="club-meta">
-                    <span class="members">👥 ${club.members} участников</span>
-                    <span class="contact">${club.contact}</span>
-                </div>
-            </div>
-        `;
-        
-        // Добавляем обработчик клика
-        div.addEventListener('click', () => {
-            alert(`Вступай в ${club.name}! Контакт: ${club.contact}`);
-        });
-
-        container.appendChild(div);
-    });
-}
 
 // ⚙️ Сервисы
 // ⚙️ Сервисы - обновленная функция
@@ -281,6 +272,7 @@ function openCreateClubModal() {
 }
 
 // 🔥 ОБРАБОТКА СОЗДАНИЯ КЛУБА
+// 🔥 ОБНОВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ КЛУБА С АВТОМАТИЧЕСКИМ ЗАКРЫТИЕМ
 function handleClubCreation(e) {
     e.preventDefault();
     
@@ -307,6 +299,12 @@ function handleClubCreation(e) {
         return;
     }
     
+    // Проверка обязательных полей
+    if (!formData.name || !formData.desc || !formData.category || !formData.meetingDay || !formData.contact) {
+        alert('Пожалуйста, заполните все обязательные поля');
+        return;
+    }
+    
     // Создаем новый клуб
     const newClub = {
         id: Date.now(),
@@ -320,17 +318,88 @@ function handleClubCreation(e) {
     // Добавляем в mockData
     mockData.clubs.push(newClub);
     
-    // Закрываем модальное окно
-    closeAllServiceModals();
+    // 🔥 ЗАКРЫВАЕМ МОДАЛКУ АВТОМАТИЧЕСКИ (как в бронировании)
+    const modal = document.getElementById('create-club-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
     
-    // Показываем уведомление об успехе
-    showSuccessMessage(`🎉 Клуб "${newClub.name}" успешно создан!`);
+    // Сбрасываем форму
+    const form = document.getElementById('create-club-form');
+    if (form) {
+        form.reset();
+        clubFormSelectedTags = [];
+        updateClubFormTagsDisplay();
+    }
+    
+    // 🔥 ПОКАЗЫВАЕМ УВЕДОМЛЕНИЕ ОБ УСПЕХЕ (как в бронировании)
+    showClubCreationSuccessNotification(newClub);
     
     // Обновляем отображение клубов
     filterClubs();
     
-    // Сохраняем в localStorage
+    // Сохраняем в localStorage (если нужно)
     saveClubsToLocalStorage();
+}
+
+// 🔥 ФУНКЦИЯ УВЕДОМЛЕНИЯ ОБ УСПЕШНОМ СОЗДАНИИ КЛУБА
+function showClubCreationSuccessNotification(club) {
+    const notification = document.createElement('div');
+    notification.className = 'success-notification club-creation-success';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">🎉</span>
+            <div class="notification-text">
+                <strong>Клуб "${club.name}" успешно создан!</strong>
+                <div style="font-size: 0.9rem; margin-top: 5px; opacity: 0.9;">
+                    Формат: ${getClubFormatText(club.format)}<br>
+                    Участники: ${club.members}/${club.maxMembers > 0 ? club.maxMembers : '∞'}<br>
+                    Встречи: ${club.meetingDay}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Автоматическое скрытие через 5 секунд
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+        }
+    }, 5000);
+    
+    // Логируем в консоль для демонстрации
+    console.log('🎯 Клуб создан:', club);
+}
+
+// 🔥 ОБНОВИМ ФУНКЦИЮ СОХРАНЕНИЯ (добавим если её нет)
+function saveClubsToLocalStorage() {
+    try {
+        localStorage.setItem('userClubs', JSON.stringify(mockData.clubs));
+        console.log('💾 Клубы сохранены в localStorage');
+    } catch (error) {
+        console.error('❌ Ошибка сохранения в localStorage:', error);
+    }
+}
+
+// 🔥 ОБНОВИМ ФУНКЦИЮ ЗАГРУЗКИ (добавим если её нет)
+function loadClubsFromLocalStorage() {
+    try {
+        const savedClubs = localStorage.getItem('userClubs');
+        if (savedClubs) {
+            const parsedClubs = JSON.parse(savedClubs);
+            // Объединяем с существующими клубами (избегаем дублирования)
+            parsedClubs.forEach(savedClub => {
+                if (!mockData.clubs.some(club => club.id === savedClub.id)) {
+                    mockData.clubs.push(savedClub);
+                }
+            });
+            console.log('💾 Клубы загружены из localStorage');
+        }
+    } catch (error) {
+        console.error('❌ Ошибка загрузки из localStorage:', error);
+    }
 }
 
 // 🔥 ПОКАЗАТЬ СООБЩЕНИЕ ОБ УСПЕХЕ
@@ -411,13 +480,18 @@ function showServiceModal(title, content) {
 }
 
 // 🔥 БРОНИРОВАНИЕ ПОМЕЩЕНИЙ
+// 🔥 ОБНОВЛЕННАЯ ФУНКЦИЯ БРОНИРОВАНИЯ ПОМЕЩЕНИЙ
 function openRoomBooking() {
     const modal = document.createElement('div');
     modal.className = 'service-modal active';
+    
+    // Берем аудитории текущего университета
+    const universityClassrooms = getUniversityData('classrooms');
+    
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
-                <h3>🏢 Бронирование помещений</h3>
+                <h3>🏢 Бронирование помещений - ${authService.currentUniversity?.shortName}</h3>
                 <button class="close-modal">&times;</button>
             </div>
             <div class="modal-body">
@@ -433,6 +507,9 @@ function openRoomBooking() {
                             <option value="meeting">Переговорная</option>
                             <option value="sports">Спортивный зал</option>
                             <option value="event">Актовый зал</option>
+                            <option value="dojo">Додзё</option>
+                            <option value="training">Тренировочный зал</option>
+                            <option value="outdoor">Открытая площадка</option>
                         </select>
                     </div>
                     
@@ -447,6 +524,7 @@ function openRoomBooking() {
                         </div>
                     </div>
                     
+                    <!-- Остальная форма без изменений -->
                     <div class="form-group">
                         <label>Дата и время:</label>
                         <input type="datetime-local" id="booking-datetime" class="form-input" required>
@@ -487,10 +565,12 @@ function openRoomBooking() {
     `;
     
     document.body.appendChild(modal);
-    setupRoomBookingHandlers(modal);
+    setupRoomBookingHandlers(modal, universityClassrooms);
 }
+
 // 🔥 ОБРАБОТЧИКИ ДЛЯ ФОРМЫ БРОНИРОВАНИЯ
-function setupRoomBookingHandlers(modal) {
+// 🔥 ОБНОВЛЕННЫЕ ОБРАБОТЧИКИ ДЛЯ ФОРМЫ БРОНИРОВАНИЯ
+function setupRoomBookingHandlers(modal, classrooms) {
     const roomTypeSelect = modal.querySelector('#room-type');
     const roomSelect = modal.querySelector('#room-select');
     const roomInfo = modal.querySelector('#room-info');
@@ -501,14 +581,14 @@ function setupRoomBookingHandlers(modal) {
     // Обновление списка аудиторий при выборе типа
     roomTypeSelect.addEventListener('change', function() {
         const selectedType = this.value;
-        updateRoomOptions(roomSelect, roomInfo, roomDetails, selectedType);
+        updateRoomOptions(roomSelect, roomInfo, roomDetails, selectedType, classrooms);
     });
     
     // Показ информации об аудитории
     roomSelect.addEventListener('change', function() {
         const selectedRoomId = this.value;
         if (selectedRoomId) {
-            showRoomDetails(roomDetails, selectedRoomId);
+            showRoomDetails(roomDetails, selectedRoomId, classrooms);
             roomInfo.style.display = 'block';
         } else {
             roomInfo.style.display = 'none';
@@ -518,7 +598,7 @@ function setupRoomBookingHandlers(modal) {
     // Обработчик отправки формы
     submitBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        handleBookingSubmission(modal, bookingForm);
+        handleBookingSubmission(modal, bookingForm, classrooms);
     });
     
     // Стандартные обработчики закрытия модалки
@@ -526,7 +606,7 @@ function setupRoomBookingHandlers(modal) {
 }
 
 // 🔥 ОБНОВЛЕНИЕ СПИСКА АУДИТОРИЙ
-function updateRoomOptions(roomSelect, roomInfo, roomDetails, roomType) {
+function updateRoomOptions(roomSelect, roomInfo, roomDetails, roomType, classrooms) {
     roomSelect.innerHTML = '<option value="">Выберите аудиторию</option>';
     roomInfo.style.display = 'none';
     
@@ -535,7 +615,7 @@ function updateRoomOptions(roomSelect, roomInfo, roomDetails, roomType) {
         return;
     }
     
-    const filteredRooms = mockData.classrooms.filter(room => room.type === roomType);
+    const filteredRooms = classrooms.filter(room => room.type === roomType);
     
     if (filteredRooms.length === 0) {
         roomSelect.innerHTML = '<option value="">Нет доступных аудиторий</option>';
@@ -554,24 +634,56 @@ function updateRoomOptions(roomSelect, roomInfo, roomDetails, roomType) {
 }
 
 // 🔥 ПОКАЗ ИНФОРМАЦИИ ОБ АУДИТОРИИ
-function showRoomDetails(roomDetails, roomId) {
-    const room = mockData.classrooms.find(r => r.id == roomId);
-    if (!room) return;
+// 🔥 ОБНОВЛЕННАЯ ФУНКЦИЯ КАЛЕНДАРЯ МЕРОПРИЯТИЙ
+function showEventsCalendar() {
+    if (document.querySelector('.service-modal[data-service="events"]')) {
+        return;
+    }
     
-    const equipmentList = room.equipment.map(item => `• ${item}`).join('<br>');
+    const modal = document.createElement('div');
+    modal.className = 'service-modal active';
+    modal.setAttribute('data-service', 'events');
     
-    roomDetails.innerHTML = `
-        <div style="font-size: 0.85rem; line-height: 1.4;">
-            <div><strong>Аудитория:</strong> ${room.number}</div>
-            <div><strong>Корпус:</strong> ${room.building}</div>
-            <div><strong>Этаж:</strong> ${room.floor}</div>
-            <div><strong>Вместимость:</strong> ${room.capacity} человек</div>
-            <div><strong>Оборудование:</strong><br>${equipmentList}</div>
-            <div style="color: #48bb78; margin-top: 5px;">
-                <strong>✓ Доступно для бронирования</strong>
+    // Берем мероприятия текущего университета
+    const universityEvents = getUniversityData('events');
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📅 Мероприятия - ${authService.currentUniversity?.shortName}</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="events-filter">
+                    <button class="filter-btn active" data-filter="all">Все</button>
+                    <button class="filter-btn" data-filter="hackathon">Хакатоны</button>
+                    <button class="filter-btn" data-filter="conference">Конференции</button>
+                    <button class="filter-btn" data-filter="workshop">Мастер-классы</button>
+                    <button class="filter-btn" data-filter="career">Карьера</button>
+                    <button class="filter-btn" data-filter="tournament">Турниры</button>
+                    <button class="filter-btn" data-filter="field_training">Полевые</button>
+                    <button class="filter-btn" data-filter="masterclass">Мастер-классы</button>
+                </div>
+                
+                <div class="events-list" id="events-list">
+                    <!-- Мероприятия будут рендериться через JS -->
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn-primary" style="width: 100%;">
+                        📋 Показать все мероприятия
+                    </button>
+                </div>
             </div>
         </div>
     `;
+    
+    document.body.appendChild(modal);
+    setupModalHandlers(modal);
+    
+    // Рендерим мероприятия из текущего университета
+    renderEventsFromDatabase('all', universityEvents);
+    setupEventsFilterHandlers(modal, universityEvents);
 }
 
 // 🔥 ОБРАБОТКА ОТПРАВКИ ФОРМЫ БРОНИРОВАНИЯ
@@ -661,83 +773,491 @@ function formatBookingTime(datetimeString, duration) {
     return `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')} - ${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
 }
 
-// 🔥 КАЛЕНДАРЬ МЕРОПРИЯТИЙ
-function showEventsCalendar() {
-    if (document.querySelector('.service-modal[data-service="events"]')) {
+
+// 🔥 РЕНДЕРИНГ МЕРОПРИЯТИЙ ИЗ БАЗЫ ДАННЫХ
+// 🔥 РЕНДЕРИНГ МЕРОПРИЯТИЙ ИЗ БАЗЫ ДАННЫХ
+function renderEventsFromDatabase(filter = 'all', events = null) {
+    const eventsList = document.getElementById('events-list');
+    if (!eventsList) {
+        console.log('❌ Контейнер мероприятий не найден');
         return;
     }
     
-    const modal = document.createElement('div');
-    modal.className = 'service-modal active';
-    modal.setAttribute('data-service', 'events');
+    // Используем переданные мероприятия или берем из текущего университета
+    const universityEvents = events || getUniversityData('events');
     
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>📅 Мероприятия университета</h3>
-                <button class="close-modal">&times;</button>
+    console.log('🎯 Рендерим мероприятия. Фильтр:', filter, 'Количество:', universityEvents.length);
+
+    // Фильтруем мероприятия
+    const filteredEvents = filter === 'all' 
+        ? universityEvents 
+        : universityEvents.filter(event => event.type === filter);
+
+    eventsList.innerHTML = '';
+
+    if (filteredEvents.length === 0) {
+        eventsList.innerHTML = `
+            <div class="no-events">
+                <div class="no-events-icon">🔍</div>
+                <h3>Мероприятия не найдены</h3>
+                <p>Попробуйте изменить фильтр</p>
             </div>
-            <div class="modal-body">
-                <div class="events-list">
-                    <div class="event-item">
-                        <div class="event-date">
-                            <span class="day">15</span>
-                            <span class="month">нояб</span>
-                        </div>
-                        <div class="event-info">
-                            <h4>Хакатон MAX</h4>
-                            <p>IT-соревнование для разработчиков</p>
-                            <span class="event-time">🕒 10:00 - 18:00 | 🏢 Главный корпус</span>
-                        </div>
-                        <button class="btn-outline">Записаться</button>
-                    </div>
-                    
-                    <div class="event-item">
-                        <div class="event-date">
-                            <span class="day">18</span>
-                            <span class="month">нояб</span>
-                        </div>
-                        <div class="event-info">
-                            <h4>Научная конференция</h4>
-                            <p>Достижения в области компьютерных наук</p>
-                            <span class="event-time">🕒 14:00 - 17:00 | 🏢 Аудитория 301</span>
-                        </div>
-                        <button class="btn-outline">Записаться</button>
-                    </div>
-                    
-                    <div class="event-item">
-                        <div class="event-date">
-                            <span class="day">22</span>
-                            <span class="month">нояб</span>
-                        </div>
-                        <div class="event-info">
-                            <h4>Карьерный день</h4>
-                            <p>Встреча с IT-компаниями и стартапами</p>
-                            <span class="event-time">🕒 11:00 - 16:00 | 🏢 Актовый зал</span>
-                        </div>
-                        <button class="btn-outline">Записаться</button>
-                    </div>
+        `;
+        return;
+    }
+
+    filteredEvents.forEach(event => {
+        const isRegistered = isUserRegisteredForEvent(event.id);
+        const registeredCount = event.registeredUsers ? event.registeredUsers.length : 0;
+        const spotsLeft = event.capacity - registeredCount;
+        
+        const eventElement = document.createElement('div');
+        eventElement.className = `event-item ${isRegistered ? 'registered' : ''}`;
+        eventElement.setAttribute('data-event-id', event.id);
+        
+        eventElement.innerHTML = `
+            <div class="event-date">
+                <span class="day">${new Date(event.date).getDate()}</span>
+                <span class="month">${new Date(event.date).toLocaleDateString('ru-RU', { month: 'short' })}</span>
+            </div>
+            <div class="event-info">
+                <div class="event-header">
+                    <h4>${event.image} ${event.title}</h4>
+                    <span class="event-type ${event.type}">${getEventTypeText(event.type)}</span>
                 </div>
-                
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn-primary" style="width: 100%;">
-                        📋 Показать все мероприятия
+                <p>${event.description}</p>
+                <span class="event-time">🕒 ${event.time} | 🏢 ${event.location}</span>
+                <div class="event-stats">
+                    <span class="participants-count">👥 ${registeredCount}/${event.capacity} записалось</span>
+                    <span class="spots-left">${spotsLeft > 0 ? `✅ ${spotsLeft} мест осталось` : '❌ Мест нет'}</span>
+                </div>
+                <div class="event-organizer">
+                    <small>Организатор: ${event.organizer}</small>
+                </div>
+                ${isRegistered ? `
+                    <div class="registration-info">
+                        <small>🎉 Вы записаны на это мероприятие</small>
+                    </div>
+                ` : ''}
+            </div>
+            <div class="event-actions">
+                ${isRegistered ? `
+                    <button class="event-unregister-btn" data-event-id="${event.id}">
+                        <span class="btn-text">Отписаться</span>
+                        <span class="btn-icon">❌</span>
                     </button>
+                ` : `
+                    <button class="event-register-btn ${spotsLeft <= 0 ? 'disabled' : ''}" 
+                            data-event-id="${event.id}"
+                            ${spotsLeft <= 0 ? 'disabled' : ''}>
+                        <span class="btn-text">${spotsLeft <= 0 ? 'Мест нет' : 'Записаться'}</span>
+                        <span class="btn-icon">${spotsLeft <= 0 ? '❌' : '📝'}</span>
+                    </button>
+                `}
+            </div>
+        `;
+        
+        eventsList.appendChild(eventElement);
+    });
+    
+    // Обновляем обработчики для кнопок
+    setupEventRegistrationHandlers();
+    setupEventUnregistrationHandlers();
+    
+    console.log('✅ Мероприятия отрендерены:', filteredEvents.length);
+}
+
+// 🔥 ФУНКЦИЯ ОБРАБОТКИ ОТПИСКИ ОТ МЕРОПРИЯТИЯ
+function setupEventUnregistrationHandlers() {
+    const unregisterButtons = document.querySelectorAll('.event-unregister-btn');
+    
+    unregisterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const eventId = parseInt(this.getAttribute('data-event-id'));
+            const event = mockData.events.find(e => e.id === eventId);
+            
+            if (!event) return;
+            
+            // Подтверждение отписки
+            if (confirm(`Вы уверены, что хотите отписаться от мероприятия "${event.title}"?`)) {
+                unregisterUserFromEvent(eventId, this);
+            }
+        });
+    });
+}
+
+// 🔥 ФУНКЦИЯ ОТПИСКИ ПОЛЬЗОВАТЕЛЯ ОТ МЕРОПРИЯТИЯ
+// 🔥 ОБНОВЛЕННАЯ ФУНКЦИЯ ОТПИСКИ
+function unregisterUserFromEvent(eventId, button) {
+    const event = mockData.events.find(e => e.id === eventId);
+    if (!event) return;
+
+    const btnText = button.querySelector('.btn-text');
+    const btnIcon = button.querySelector('.btn-icon');
+    
+    // Блокируем кнопку на время "отписки"
+    button.disabled = true;
+    button.style.pointerEvents = 'none';
+    
+    // Анимация процесса отписки
+    btnText.textContent = 'Отписываемся...';
+    btnIcon.textContent = '⏳';
+    button.classList.add('unregistering');
+    
+    // Имитируем запрос к серверу
+    setTimeout(() => {
+        // Удаляем пользователя из списка записанных
+        if (event.registeredUsers) {
+            const userIndex = event.registeredUsers.indexOf(authService.currentUser.id);
+            if (userIndex !== -1) {
+                event.registeredUsers.splice(userIndex, 1);
+                
+                // 🔥 УДАЛЯЕМ МЕРОПРИЯТИЕ ИЗ ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ
+                removeEventFromUserProfile(eventId);
+                
+                // Сохраняем в localStorage
+                saveEventsToLocalStorage();
+                
+                // Показываем уведомление об успешной отписке
+                showEventUnregistrationSuccess(event.title);
+                
+                // 🔥 ПЕРЕРИСОВЫВАЕМ ВСЕ МЕРОПРИЯТИЯ
+                const currentFilter = document.querySelector('.events-filter .filter-btn.active')?.getAttribute('data-filter') || 'all';
+                renderEventsFromDatabase(currentFilter);
+            }
+        }
+        
+    }, 1000);
+}
+
+// 🔥 УВЕДОМЛЕНИЕ ОБ УСПЕШНОЙ ОТПИСКЕ
+function showEventUnregistrationSuccess(eventTitle) {
+    const notification = document.createElement('div');
+    notification.className = 'success-notification event-unregistration-success';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">👋</span>
+            <div class="notification-text">
+                <strong>Вы отписались от мероприятия</strong>
+                <div style="font-size: 0.9rem; margin-top: 5px; opacity: 0.9;">
+                    "${eventTitle}"
                 </div>
             </div>
         </div>
     `;
     
-    document.body.appendChild(modal);
-    setupModalHandlers(modal);
+    document.body.appendChild(notification);
     
-    // Добавляем обработчики для кнопок "Записаться"
-    modal.querySelectorAll('.btn-outline').forEach(btn => {
+    // Автоматическое скрытие через 4 секунды
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            notification.style.animation = 'slideOutRight 0.3s ease forwards';
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }
+    }, 4000);
+}
+
+// 🔥 ФУНКЦИЯ ДЛЯ ТЕКСТА ТИПА МЕРОПРИЯТИЯ
+function getEventTypeText(type) {
+    const types = {
+        'hackathon': 'Хакатон',
+        'conference': 'Конференция',
+        'workshop': 'Мастер-класс',
+        'career': 'Карьера'
+    };
+    return types[type] || type;
+}
+
+// 🔥 ФИЛЬТРАЦИЯ МЕРОПРИЯТИЙ
+function setupEventsFilterHandlers(modal) {
+    const filterButtons = modal.querySelectorAll('.filter-btn');
+    
+    filterButtons.forEach(btn => {
         btn.addEventListener('click', function() {
-            const eventTitle = this.closest('.event-item').querySelector('h4').textContent;
-            alert(`🎉 Вы записаны на мероприятие: "${eventTitle}"`);
+            filterButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const filter = this.getAttribute('data-filter');
+            renderEventsFromDatabase(filter);
         });
     });
+}
+
+
+// 🔥 ФУНКЦИЯ ДЛЯ ОБРАБОТКИ ЗАПИСИ НА МЕРОПРИЯТИЯ
+// 🔥 ОБНОВЛЕННАЯ ФУНКЦИЯ ОБРАБОТКИ ЗАПИСИ
+function setupEventRegistrationHandlers() {
+    const registerButtons = document.querySelectorAll('.event-register-btn:not(.registered):not(:disabled)');
+    
+    console.log('🎯 Найдено кнопок записи:', registerButtons.length);
+    
+    registerButtons.forEach(btn => {
+        // Убираем старые обработчики
+        btn.replaceWith(btn.cloneNode(true));
+    });
+    
+    // Вешаем новые обработчики
+    document.querySelectorAll('.event-register-btn:not(.registered):not(:disabled)').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const eventId = parseInt(this.getAttribute('data-event-id'));
+            console.log('🎯 Клик по записи на мероприятие:', eventId);
+            
+            const event = mockData.events.find(e => e.id === eventId);
+            
+            if (!event) {
+                console.error('❌ Мероприятие не найдено:', eventId);
+                return;
+            }
+            
+            // Проверяем, есть ли еще места
+            const registeredCount = event.registeredUsers ? event.registeredUsers.length : 0;
+            if (registeredCount >= event.capacity) {
+                alert('❌ Извините, все места заняты!');
+                return;
+            }
+            
+            // Записываем пользователя
+            registerUserForEvent(eventId, this);
+        });
+    });
+}
+
+// 🔥 ФУНКЦИЯ ЗАПИСИ ПОЛЬЗОВАТЕЛЯ НА МЕРОПРИЯТИЕ
+// 🔥 ОБНОВЛЕННАЯ ФУНКЦИЯ ЗАПИСИ ПОЛЬЗОВАТЕЛЯ НА МЕРОПРИЯТИЕ
+function registerUserForEvent(eventId, button) {
+    const event = mockData.events.find(e => e.id === eventId);
+    if (!event) {
+        console.error('❌ Мероприятие не найдено');
+        return;
+    }
+
+    // Проверяем авторизацию
+    if (!authService.currentUser) {
+        alert('❌ Для записи на мероприятие необходимо авторизоваться');
+        return;
+    }
+
+    const btnText = button.querySelector('.btn-text');
+    const btnIcon = button.querySelector('.btn-icon');
+    
+    // Блокируем кнопку на время "записи"
+    button.disabled = true;
+    button.style.pointerEvents = 'none';
+    
+    // Анимация процесса записи
+    btnText.textContent = 'Записываем...';
+    btnIcon.textContent = '⏳';
+    button.classList.add('registering');
+    
+    console.log('🎯 Начинаем запись пользователя', authService.currentUser.id, 'на мероприятие', eventId);
+    
+    // Имитируем запрос к серверу
+    setTimeout(() => {
+        // Инициализируем массив если его нет
+        if (!event.registeredUsers) {
+            event.registeredUsers = [];
+        }
+        
+        // Добавляем пользователя в список записанных
+        if (!event.registeredUsers.includes(authService.currentUser.id)) {
+            event.registeredUsers.push(authService.currentUser.id);
+            
+            // 🔥 ДОБАВЛЯЕМ МЕРОПРИЯТИЕ В ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
+            addEventToUserProfile(eventId);
+            
+            // Сохраняем в localStorage
+            saveEventsToLocalStorage();
+            
+            // Показываем уведомление
+            showEventRegistrationSuccess(event.title);
+            
+            // 🔥 ПЕРЕРИСОВЫВАЕМ ВСЕ МЕРОПРИЯТИЯ
+            const currentFilter = document.querySelector('.events-filter .filter-btn.active')?.getAttribute('data-filter') || 'all';
+            renderEventsFromDatabase(currentFilter);
+        }
+        
+    }, 1000);
+}
+
+
+// 🔥 ДОБАВЛЕНИЕ МЕРОПРИЯТИЯ В ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
+// 🔥 ДОБАВЛЕНИЕ МЕРОПРИЯТИЯ В ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
+function addEventToUserProfile(eventId) {
+    if (!authService.currentUser) return;
+    
+    // Инициализируем массив мероприятий пользователя если его нет
+    if (!authService.currentUser.registeredEvents) {
+        authService.currentUser.registeredEvents = [];
+    }
+    
+    // Добавляем мероприятие если его еще нет
+    if (!authService.currentUser.registeredEvents.includes(eventId)) {
+        authService.currentUser.registeredEvents.push(eventId);
+        
+        // Сохраняем обновленного пользователя в localStorage
+        localStorage.setItem('currentUser', JSON.stringify(authService.currentUser));
+        
+        // Обновляем в mockData
+        const userIndex = mockData.users.findIndex(u => u.id === authService.currentUser.id);
+        if (userIndex !== -1) {
+            mockData.users[userIndex] = authService.currentUser;
+        }
+        
+        console.log('✅ Мероприятие добавлено в профиль пользователя:', eventId);
+        console.log('📊 Все мероприятия пользователя:', authService.currentUser.registeredEvents);
+    }
+}
+
+// 🔥 УДАЛЕНИЕ МЕРОПРИЯТИЯ ИЗ ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ
+function removeEventFromUserProfile(eventId) {
+    if (!authService.currentUser || !authService.currentUser.registeredEvents) return;
+    
+    const eventIndex = authService.currentUser.registeredEvents.indexOf(eventId);
+    if (eventIndex !== -1) {
+        authService.currentUser.registeredEvents.splice(eventIndex, 1);
+        
+        // Сохраняем обновленного пользователя
+        localStorage.setItem('currentUser', JSON.stringify(authService.currentUser));
+        
+        // Обновляем в mockData
+        const userIndex = mockData.users.findIndex(u => u.id === authService.currentUser.id);
+        if (userIndex !== -1) {
+            mockData.users[userIndex] = authService.currentUser;
+        }
+        
+        console.log('✅ Мероприятие удалено из профиля:', eventId);
+        console.log('📊 Осталось мероприятий:', authService.currentUser.registeredEvents);
+    }
+}
+
+// 🔥 ПРОВЕРКА ЗАПИСАН ЛИ ПОЛЬЗОВАТЕЛЬ НА МЕРОПРИЯТИЕ
+function isUserRegisteredForEvent(eventId) {
+    if (!authService.currentUser || !authService.currentUser.registeredEvents) return false;
+    return authService.currentUser.registeredEvents.includes(eventId);
+}
+
+// 🔥 СОХРАНЕНИЕ МЕРОПРИЯТИЙ В LOCALSTORAGE
+function saveEventsToLocalStorage() {
+    try {
+        localStorage.setItem('universityEvents', JSON.stringify(mockData.events));
+        console.log('💾 Мероприятия сохранены в localStorage');
+    } catch (error) {
+        console.error('❌ Ошибка сохранения мероприятий:', error);
+    }
+}
+
+// 🔥 ЗАГРУЗКА МЕРОПРИЯТИЙ ИЗ LOCALSTORAGE
+function loadEventsFromLocalStorage() {
+    try {
+        const savedEvents = localStorage.getItem('universityEvents');
+        if (savedEvents) {
+            const parsedEvents = JSON.parse(savedEvents);
+            // Обновляем мероприятия с сохраненными данными о записях
+            parsedEvents.forEach(savedEvent => {
+                const existingEvent = mockData.events.find(e => e.id === savedEvent.id);
+                if (existingEvent) {
+                    existingEvent.registeredUsers = savedEvent.registeredUsers || [];
+                }
+            });
+            console.log('💾 Данные о записях загружены из localStorage');
+        }
+    } catch (error) {
+        console.error('❌ Ошибка загрузки мероприятий:', error);
+    }
+}
+
+// 🔥 АНИМАЦИЯ ЗАПИСИ НА МЕРОПРИЯТИЕ
+function showRegistrationAnimation(button, eventItem, eventTitle, eventId) {
+    const btnText = button.querySelector('.btn-text');
+    const btnIcon = button.querySelector('.btn-icon');
+    
+    // Сохраняем исходное состояние
+    const originalText = btnText.textContent;
+    const originalIcon = btnIcon.textContent;
+    
+    // Блокируем кнопку на время анимации
+    button.disabled = true;
+    button.style.pointerEvents = 'none';
+    
+    // 🔥 ШАГ 1: Начало анимации - меняем на "Записываем..."
+    btnText.textContent = 'Записываем...';
+    btnIcon.textContent = '⏳';
+    button.classList.add('registering');
+    
+    // Имитируем задержку сети
+    setTimeout(() => {
+        // 🔥 ШАГ 2: Успешная запись - показываем галочку
+        btnText.textContent = 'Записан!';
+        btnIcon.textContent = '✅';
+        button.classList.remove('registering');
+        button.classList.add('registered');
+        
+        // Обновляем статистику мероприятия
+        updateEventStats(eventItem);
+        
+        // Показываем всплывающее уведомление
+        showEventRegistrationSuccess(eventTitle);
+        
+        // 🔥 ШАГ 3: Через 2 секунды возвращаем в нормальное состояние (но с другим текстом)
+        setTimeout(() => {
+            btnText.textContent = 'Записаться';
+            btnIcon.textContent = '📝';
+            button.classList.remove('registered');
+            button.disabled = false;
+            button.style.pointerEvents = 'auto';
+        }, 2000);
+        
+    }, 1500); // Имитация задержки
+}
+
+// 🔥 ОБНОВЛЕНИЕ СТАТИСТИКИ МЕРОПРИЯТИЯ
+function updateEventStats(eventItem) {
+    const participantsCount = eventItem.querySelector('.participants-count');
+    const currentCount = parseInt(participantsCount.textContent.match(/\d+/)[0]);
+    const newCount = currentCount + 1;
+    
+    participantsCount.textContent = `👥 ${newCount} записалось`;
+    
+    // Добавляем анимацию обновления счета
+    participantsCount.style.transform = 'scale(1.1)';
+    setTimeout(() => {
+        participantsCount.style.transform = 'scale(1)';
+    }, 300);
+}
+
+// 🔥 УВЕДОМЛЕНИЕ ОБ УСПЕШНОЙ ЗАПИСИ
+function showEventRegistrationSuccess(eventTitle) {
+    const notification = document.createElement('div');
+    notification.className = 'success-notification event-registration-success';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">🎉</span>
+            <div class="notification-text">
+                <strong>Вы успешно записаны!</strong>
+                <div style="font-size: 0.9rem; margin-top: 5px; opacity: 0.9;">
+                    Мероприятие: "${eventTitle}"
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Автоматическое скрытие через 4 секунды
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            notification.style.animation = 'slideOutRight 0.3s ease forwards';
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }
+    }, 4000);
 }
 
 // 🔥 ОБЩИЕ ОБРАБОТЧИКИ МОДАЛОК
@@ -937,56 +1457,6 @@ function getClubSize(members) {
     return 'large';
 }
 
-// 🔥 ОБНОВИМ РЕНДЕРИНГ КЛУБОВ С НОВЫМИ ПОЛЯМИ
-function renderFilteredClubs(clubs) {
-    const container = document.getElementById('clubs-list');
-    const noResults = document.getElementById('no-results');
-
-    if (clubs.length === 0) {
-        container.innerHTML = '';
-        if (noResults) noResults.classList.remove('hidden');
-        return;
-    }
-
-    if (noResults) noResults.classList.add('hidden');
-    container.innerHTML = '';
-
-    clubs.forEach(club => {
-        const div = document.createElement('div');
-        div.className = `club-card activity-${club.activity}`;
-        
-        const memberInfo = club.maxMembers > 0 ? 
-            `${club.members}/${club.maxMembers} участников` : 
-            `${club.members} участников`;
-            
-        div.innerHTML = `
-            <div class="club-icon">${club.icon}</div>
-            <div class="club-info">
-                <div class="club-header">
-                    <h3>${club.name}</h3>
-                    <span class="club-format ${club.format}">${getClubFormatText(club.format)}</span>
-                </div>
-                <p>${club.desc}</p>
-                <div class="club-meta">
-                    <span class="members">👥 ${memberInfo}</span>
-                    <span class="club-activity">${getActivityText(club.activity)}</span>
-                </div>
-                <div class="club-tags">
-                    <small>📅 ${club.meetingDay} • 🏷️ ${club.tags.slice(0, 3).join(', ')}</small>
-                </div>
-                <div class="club-contact">
-                    <small>📞 ${club.contact}</small>
-                </div>
-            </div>
-        `;
-        
-        div.addEventListener('click', () => {
-            showClubDetails(club);
-        });
-
-        container.appendChild(div);
-    });
-}
 
 function getActivityText(activity) {
     const texts = {
@@ -1027,44 +1497,63 @@ ${club.desc}
 
 
 function renderFilteredClubs(clubs) {
-    const container = document.getElementById('clubs-list');
-    const noResults = document.getElementById('no-results');
+  const container = document.getElementById('clubs-list');
+  const noResults = document.getElementById('no-results');
 
-    if (clubs.length === 0) {
-        container.innerHTML = '';
-        if (noResults) noResults.classList.remove('hidden');
-        return;
-    }
+  if (!container) {
+    console.log('❌ Контейнер для клубов не найден');
+    return;
+  }
 
-    if (noResults) noResults.classList.add('hidden');
+  console.log('🎯 Рендерим отфильтрованные клубы:', clubs.length);
+
+  if (clubs.length === 0) {
     container.innerHTML = '';
+    if (noResults) {
+      noResults.classList.remove('hidden');
+    } else {
+      // Создаем сообщение если его нет
+      container.innerHTML = `
+        <div class="no-results">
+          <div class="no-results-icon">🔍</div>
+          <h3>Клубы не найдены</h3>
+          <p>Попробуйте изменить фильтры поиска</p>
+        </div>
+      `;
+    }
+    return;
+  }
 
-    clubs.forEach(club => {
-        const div = document.createElement('div');
-        div.className = `club-card activity-${club.activity}`;
-        
-        // 🔥 ВОЗВРАЩАЕМ СТАРЫЙ ФОРМАТ
-        div.innerHTML = `
-            <div class="club-icon">${club.icon}</div>
-            <div class="club-info">
-                <h3>${club.name}</h3>
-                <p>${club.desc}</p>
-                <div class="club-meta">
-                    <span class="members">👥 ${club.members} участников</span>
-                    <span class="contact">${club.contact}</span>
-                </div>
-                <div class="club-tags">
-                    <small>📅 ${club.meetingDay} • ${getActivityText(club.activity)} • ${club.format === 'open' ? '🔓' : club.format === 'closed' ? '🔒' : '📝'}</small>
-                </div>
-            </div>
-        `;
-        
-        div.addEventListener('click', () => {
-            showClubDetails(club);
-        });
+  if (noResults) noResults.classList.add('hidden');
+  container.innerHTML = '';
 
-        container.appendChild(div);
+  clubs.forEach(club => {
+    const div = document.createElement('div');
+    div.className = `club-card activity-${club.activity}`;
+    
+    div.innerHTML = `
+      <div class="club-icon">${club.icon}</div>
+      <div class="club-info">
+        <h3>${club.name}</h3>
+        <p>${club.desc}</p>
+        <div class="club-meta">
+          <span class="members">👥 ${club.members} участников</span>
+          <span class="contact">${club.contact}</span>
+        </div>
+        <div class="club-tags">
+          <small>📅 ${club.meetingDay} • ${getActivityText(club.activity)}</small>
+        </div>
+      </div>
+    `;
+    
+    div.addEventListener('click', () => {
+      showClubDetails(club);
     });
+
+    container.appendChild(div);
+  });
+  
+  console.log('✅ Клубы отрендерены:', clubs.length);
 }
 
 function initializeClubForm() {
@@ -1283,18 +1772,44 @@ function setupClubModalHandlers() {
 
 // 🔥 ОБНОВЛЕННАЯ ФУНКЦИЯ renderClubs
 // 🎭 Клубы - ТОЛЬКО первоначальная загрузка
+// 🎭 Клубы - правильный рендеринг для университета
 function renderClubs() {
-    const container = document.getElementById('clubs-list');
-    if (!container) return;
+  const container = document.getElementById('clubs-list');
+  if (!container) {
+    console.log('❌ Контейнер клубов не найден');
+    return;
+  }
 
-    // Очищаем только список клубов, не трогая поиск
-    container.innerHTML = '';
+  console.log('🎭 Рендерим клубы для университета:', authService.currentUniversity?.name);
+  
+  // Очищаем только список клубов, не трогая поиск
+  container.innerHTML = '';
 
-    // Инициализируем умный поиск
-    initializeSmartSearch();
-    
-    // Первоначальная отрисовка всех клубов
-    renderFilteredClubs(mockData.clubs);
+  // Берем клубы текущего университета
+  const universityClubs = getUniversityData('clubs');
+  console.log('📊 Найдено клубов:', universityClubs.length);
+
+  if (universityClubs.length === 0) {
+    container.innerHTML = `
+      <div class="no-results">
+        <div class="no-results-icon">🎭</div>
+        <h3>В вашем университете пока нет клубов</h3>
+        <p>Будьте первым - создайте свой клуб!</p>
+        <button class="reset-btn" onclick="openCreateClubModal()">Создать клуб</button>
+      </div>
+    `;
+    return;
+  }
+
+  // Рендерим клубы университета
+  renderFilteredClubs(universityClubs);
+  
+  // Инициализируем умный поиск ТОЛЬКО после рендеринга
+  setTimeout(() => {
+    if (typeof initializeSmartSearch === 'function') {
+      initializeSmartSearch();
+    }
+  }, 50);
 }
 
 
