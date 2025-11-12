@@ -50,8 +50,8 @@ resetButton(button) {
   }
 
   // 🔐 Вход в систему
-  async login(universityId, uid, password) {
-    console.log('🔐 Попытка входа в университет:', universityId, 'UID:', uid);
+  async login(universityId, uid, password, isStaff = false) {
+    console.log('🔐 Попытка входа в университет:', universityId, 'UID:', uid, 'Тип:', isStaff ? 'сотрудник' : 'студент');
     
     // Проверяем университет
     const university = mockData.universities.find(u => u.id === universityId);
@@ -60,13 +60,26 @@ resetButton(button) {
       return { success: false, error: 'Университет не найден' };
     }
 
-    // Ищем пользователя
-    const user = mockData.users.find(u => 
-      u.university_id === universityId && 
-      u.uid === uid && 
-      u.password === password &&
-      u.isActive
-    );
+    // Ищем пользователя (студента или сотрудника)
+    let user = null;
+    
+    if (isStaff) {
+      // Ищем среди сотрудников
+      user = mockData.staff.find(u => 
+        u.university_id === universityId && 
+        u.uid === uid && 
+        u.password === password &&
+        u.isActive
+      );
+    } else {
+      // Ищем среди студентов
+      user = mockData.users.find(u => 
+        u.university_id === universityId && 
+        u.uid === uid && 
+        u.password === password &&
+        u.isActive
+      );
+    }
 
     if (user && university) {
       this.currentUser = user;
@@ -77,14 +90,15 @@ resetButton(button) {
       localStorage.setItem('currentUniversity', JSON.stringify(university));
       localStorage.setItem('currentUser', JSON.stringify(user));
       localStorage.setItem('authToken', 'jjk-auth-' + user.id);
+      localStorage.setItem('userType', isStaff ? 'staff' : 'student');
       
-      console.log('✅ Успешный вход:', user.profile.firstName, 'в', university.name);
+      console.log('✅ Успешный вход:', user.profile.firstName, 'в', university.name, 'как', isStaff ? 'сотрудник' : 'студент');
       this.showNotification('success', `Добро пожаловать в ${university.name}!`);
       
       // Обновляем UI
       this.updateUI();
       
-      return { success: true, user, university };
+      return { success: true, user, university, isStaff };
     } else {
       this.showNotification('error', 'Неверный UID или пароль');
       return { success: false, error: 'Неверные учетные данные' };
@@ -664,7 +678,7 @@ displaySearchResults(universities, searchResults, modal) {
   }
 
   // 🔐 Показать шаг входа
-  // 🔐 Показать шаг входа
+// 🔐 Показать шаг входа (ДОБАВЛЯЕМ ПЕРЕКЛЮЧАТЕЛЬ)
 showLoginStep(modal, universityId) {
     const university = mockData.universities.find(u => u.id === universityId);
     const selectedUniSpan = modal.querySelector('#selected-university');
@@ -682,6 +696,18 @@ showLoginStep(modal, universityId) {
                 <span>${university.city}</span>
             </div>
         </div>
+        
+        <!-- 🔥 ПЕРЕКЛЮЧАТЕЛЬ РЕЖИМА ВХОДА -->
+        <div class="login-mode-selector">
+            <div class="mode-tabs">
+                <button type="button" class="mode-tab active" data-mode="student">
+                    👨‍🎓 Студент
+                </button>
+                <button type="button" class="mode-tab" data-mode="staff">
+                    👨‍🏫 Сотрудник
+                </button>
+            </div>
+        </div>
     `;
     
     // Переключаем шаги
@@ -691,6 +717,30 @@ showLoginStep(modal, universityId) {
     setTimeout(() => {
         modal.querySelector('#university-uid').focus();
     }, 100);
+
+    // 🔥 ОБРАБОТЧИКИ ПЕРЕКЛЮЧЕНИЯ РЕЖИМА
+    const modeTabs = modal.querySelectorAll('.mode-tab');
+    let currentMode = 'student'; // По умолчанию студент
+    
+    modeTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            modeTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentMode = tab.getAttribute('data-mode');
+            
+            // Обновляем подсказки в зависимости от режима
+            const uidInput = modal.querySelector('#university-uid');
+            const passwordHint = modal.querySelector('.password-hint');
+            
+            if (currentMode === 'staff') {
+                uidInput.placeholder = "Введите ваш Staff ID";
+                passwordHint.innerHTML = '<small>Демо-пароль для сотрудников: <code>123</code></small>';
+            } else {
+                uidInput.placeholder = "Введите ваш UID (например: q466123)";
+                passwordHint.innerHTML = '<small>Демо-пароль: <code>123</code></small>';
+            }
+        });
+    });
 
     // Обработчик формы входа
     loginForm.addEventListener('submit', async (e) => {
@@ -709,7 +759,7 @@ showLoginStep(modal, universityId) {
         this.showButtonLoading(loginBtn);
         
         try {
-            const result = await this.login(universityId, uid, password);
+            const result = await this.login(universityId, uid, password, currentMode === 'staff');
             
             if (result.success) {
                 this.showButtonSuccess(loginBtn);
@@ -730,30 +780,6 @@ showLoginStep(modal, universityId) {
         // Очищаем форму при возврате
         loginForm.reset();
     });
-
-    etTimeout(() => {
-    const loginBtn = modal.querySelector('#login-submit-btn');
-    if (loginBtn) {
-        loginBtn.style.cssText = `
-            width: 100%;
-            background: #5b6dfa;
-            color: white;
-            border: none;
-            padding: 14px 20px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        `;
-    }
-}, 100);
-
 }
 
   // 🔄 Переключение между шагами

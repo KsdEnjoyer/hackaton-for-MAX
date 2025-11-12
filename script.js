@@ -271,8 +271,7 @@ function openCreateClubModal() {
     }, 100);
 }
 
-// 🔥 ОБРАБОТКА СОЗДАНИЯ КЛУБА
-// 🔥 ОБНОВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ КЛУБА С АВТОМАТИЧЕСКИМ ЗАКРЫТИЕМ
+// 🔥 ОБНОВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ КЛУБА
 function handleClubCreation(e) {
     e.preventDefault();
     
@@ -308,6 +307,7 @@ function handleClubCreation(e) {
     // Создаем новый клуб
     const newClub = {
         id: Date.now(),
+        university_id: authService.currentUniversity.id, // 🔥 ДОБАВЛЯЕМ ID УНИВЕРСИТЕТА
         ...formData,
         members: 1, // Создатель - первый участник
         activity: 'medium',
@@ -318,7 +318,7 @@ function handleClubCreation(e) {
     // Добавляем в mockData
     mockData.clubs.push(newClub);
     
-    // 🔥 ЗАКРЫВАЕМ МОДАЛКУ АВТОМАТИЧЕСКИ (как в бронировании)
+    // 🔥 ЗАКРЫВАЕМ МОДАЛКУ АВТОМАТИЧЕСКИ
     const modal = document.getElementById('create-club-modal');
     if (modal) {
         modal.classList.add('hidden');
@@ -332,7 +332,7 @@ function handleClubCreation(e) {
         updateClubFormTagsDisplay();
     }
     
-    // 🔥 ПОКАЗЫВАЕМ УВЕДОМЛЕНИЕ ОБ УСПЕХЕ (как в бронировании)
+    // 🔥 ПОКАЗЫВАЕМ УВЕДОМЛЕНИЕ ОБ УСПЕХЕ
     showClubCreationSuccessNotification(newClub);
     
     // Обновляем отображение клубов
@@ -373,7 +373,7 @@ function showClubCreationSuccessNotification(club) {
     console.log('🎯 Клуб создан:', club);
 }
 
-// 🔥 ОБНОВИМ ФУНКЦИЮ СОХРАНЕНИЯ (добавим если её нет)
+// 🔥 ОБНОВИМ ФУНКЦИЮ СОХРАНЕНИЯ
 function saveClubsToLocalStorage() {
     try {
         localStorage.setItem('userClubs', JSON.stringify(mockData.clubs));
@@ -383,13 +383,12 @@ function saveClubsToLocalStorage() {
     }
 }
 
-// 🔥 ОБНОВИМ ФУНКЦИЮ ЗАГРУЗКИ (добавим если её нет)
+// 🔥 ОБНОВИМ ФУНКЦИЮ ЗАГРУЗКИ
 function loadClubsFromLocalStorage() {
     try {
         const savedClubs = localStorage.getItem('userClubs');
         if (savedClubs) {
             const parsedClubs = JSON.parse(savedClubs);
-            // Объединяем с существующими клубами (избегаем дублирования)
             parsedClubs.forEach(savedClub => {
                 if (!mockData.clubs.some(club => club.id === savedClub.id)) {
                     mockData.clubs.push(savedClub);
@@ -775,7 +774,6 @@ function formatBookingTime(datetimeString, duration) {
 
 
 // 🔥 РЕНДЕРИНГ МЕРОПРИЯТИЙ ИЗ БАЗЫ ДАННЫХ
-// 🔥 РЕНДЕРИНГ МЕРОПРИЯТИЙ ИЗ БАЗЫ ДАННЫХ
 function renderEventsFromDatabase(filter = 'all', events = null) {
     const eventsList = document.getElementById('events-list');
     if (!eventsList) {
@@ -887,7 +885,7 @@ function setupEventUnregistrationHandlers() {
 }
 
 // 🔥 ФУНКЦИЯ ОТПИСКИ ПОЛЬЗОВАТЕЛЯ ОТ МЕРОПРИЯТИЯ
-// 🔥 ОБНОВЛЕННАЯ ФУНКЦИЯ ОТПИСКИ
+// 🔥 ФУНКЦИЯ ОТПИСКИ ПОЛЬЗОВАТЕЛЯ ОТ МЕРОПРИЯТИЯ
 function unregisterUserFromEvent(eventId, button) {
     const event = mockData.events.find(e => e.id === eventId);
     if (!event) return;
@@ -911,9 +909,6 @@ function unregisterUserFromEvent(eventId, button) {
             const userIndex = event.registeredUsers.indexOf(authService.currentUser.id);
             if (userIndex !== -1) {
                 event.registeredUsers.splice(userIndex, 1);
-                
-                // 🔥 УДАЛЯЕМ МЕРОПРИЯТИЕ ИЗ ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ
-                removeEventFromUserProfile(eventId);
                 
                 // Сохраняем в localStorage
                 saveEventsToLocalStorage();
@@ -1027,7 +1022,7 @@ function setupEventRegistrationHandlers() {
 }
 
 // 🔥 ФУНКЦИЯ ЗАПИСИ ПОЛЬЗОВАТЕЛЯ НА МЕРОПРИЯТИЕ
-// 🔥 ОБНОВЛЕННАЯ ФУНКЦИЯ ЗАПИСИ ПОЛЬЗОВАТЕЛЯ НА МЕРОПРИЯТИЕ
+// 🔥 ФУНКЦИЯ ЗАПИСИ ПОЛЬЗОВАТЕЛЯ НА МЕРОПРИЯТИЕ
 function registerUserForEvent(eventId, button) {
     const event = mockData.events.find(e => e.id === eventId);
     if (!event) {
@@ -1065,9 +1060,6 @@ function registerUserForEvent(eventId, button) {
         // Добавляем пользователя в список записанных
         if (!event.registeredUsers.includes(authService.currentUser.id)) {
             event.registeredUsers.push(authService.currentUser.id);
-            
-            // 🔥 ДОБАВЛЯЕМ МЕРОПРИЯТИЕ В ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
-            addEventToUserProfile(eventId);
             
             // Сохраняем в localStorage
             saveEventsToLocalStorage();
@@ -1136,8 +1128,12 @@ function removeEventFromUserProfile(eventId) {
 
 // 🔥 ПРОВЕРКА ЗАПИСАН ЛИ ПОЛЬЗОВАТЕЛЬ НА МЕРОПРИЯТИЕ
 function isUserRegisteredForEvent(eventId) {
-    if (!authService.currentUser || !authService.currentUser.registeredEvents) return false;
-    return authService.currentUser.registeredEvents.includes(eventId);
+    if (!authService.currentUser) return false;
+    
+    const event = mockData.events.find(e => e.id === eventId);
+    if (!event || !event.registeredUsers) return false;
+    
+    return event.registeredUsers.includes(authService.currentUser.id);
 }
 
 // 🔥 СОХРАНЕНИЕ МЕРОПРИЯТИЙ В LOCALSTORAGE
@@ -1156,11 +1152,12 @@ function loadEventsFromLocalStorage() {
         const savedEvents = localStorage.getItem('universityEvents');
         if (savedEvents) {
             const parsedEvents = JSON.parse(savedEvents);
+            
             // Обновляем мероприятия с сохраненными данными о записях
             parsedEvents.forEach(savedEvent => {
                 const existingEvent = mockData.events.find(e => e.id === savedEvent.id);
-                if (existingEvent) {
-                    existingEvent.registeredUsers = savedEvent.registeredUsers || [];
+                if (existingEvent && savedEvent.registeredUsers) {
+                    existingEvent.registeredUsers = savedEvent.registeredUsers;
                 }
             });
             console.log('💾 Данные о записях загружены из localStorage');
@@ -1169,7 +1166,6 @@ function loadEventsFromLocalStorage() {
         console.error('❌ Ошибка загрузки мероприятий:', error);
     }
 }
-
 // 🔥 АНИМАЦИЯ ЗАПИСИ НА МЕРОПРИЯТИЕ
 function showRegistrationAnimation(button, eventItem, eventTitle, eventId) {
     const btnText = button.querySelector('.btn-text');
@@ -1402,53 +1398,56 @@ function resetFilters() {
 }
 
 function filterClubs() {
-    const filteredClubs = mockData.clubs.filter(club => {
-        // Поиск по тексту (умный - ищет в названии, описании и тегах)
-        if (currentFilters.searchText) {
-            const searchText = currentFilters.searchText;
-            const searchIn = `${club.name} ${club.desc} ${club.tags.join(' ')}`.toLowerCase();
-            if (!searchIn.includes(searchText)) return false;
-        }
+  // 🔥 Берем клубы только текущего университета
+  const allUniversityClubs = getUniversityData('clubs');
+  
+  const filteredClubs = allUniversityClubs.filter(club => {
+    // Поиск по тексту (умный - ищет в названии, описании и тегах)
+    if (currentFilters.searchText) {
+      const searchText = currentFilters.searchText;
+      const searchIn = `${club.name} ${club.desc} ${club.tags.join(' ')}`.toLowerCase();
+      if (!searchIn.includes(searchText)) return false;
+    }
 
-        // Быстрые фильтры по категориям
-        if (currentFilters.category !== 'all') {
-            switch (currentFilters.category) {
-                case 'popular':
-                    if (club.members < 50) return false;
-                    break;
-                case 'tech':
-                    if (club.category !== 'tech') return false;
-                    break;
-                case 'creative':
-                    if (club.category !== 'creative') return false;
-                    break;
-                case 'sports':
-                    if (club.category !== 'sports') return false;
-                    break;
-                case 'new':
-                    if (club.members > 30 || club.activity === 'high') return false;
-                    break;
-            }
-        }
+    // Быстрые фильтры по категориям
+    if (currentFilters.category !== 'all') {
+      switch (currentFilters.category) {
+        case 'popular':
+          if (club.members < 50) return false;
+          break;
+        case 'tech':
+          if (club.category !== 'tech') return false;
+          break;
+        case 'creative':
+          if (club.category !== 'creative') return false;
+          break;
+        case 'sports':
+          if (club.category !== 'sports') return false;
+          break;
+        case 'new':
+          if (club.members > 30 || club.activity === 'high') return false;
+          break;
+      }
+    }
 
-        // Умные фильтры
-        if (currentFilters.activity !== 'any' && club.activity !== currentFilters.activity) {
-            return false;
-        }
+    // Умные фильтры
+    if (currentFilters.activity !== 'any' && club.activity !== currentFilters.activity) {
+      return false;
+    }
 
-        if (currentFilters.day !== 'any' && club.meetingDay !== currentFilters.day) {
-            return false;
-        }
+    if (currentFilters.day !== 'any' && club.meetingDay !== currentFilters.day) {
+      return false;
+    }
 
-        if (currentFilters.size !== 'any') {
-            const size = getClubSize(club.members);
-            if (size !== currentFilters.size) return false;
-        }
+    if (currentFilters.size !== 'any') {
+      const size = getClubSize(club.members);
+      if (size !== currentFilters.size) return false;
+    }
 
-        return true;
-    });
+    return true;
+  });
 
-    renderFilteredClubs(filteredClubs);
+  renderFilteredClubs(filteredClubs);
 }
 
 function getClubSize(members) {
@@ -1507,7 +1506,14 @@ function renderFilteredClubs(clubs) {
 
   console.log('🎯 Рендерим отфильтрованные клубы:', clubs.length);
 
-  if (clubs.length === 0) {
+  // 🔥 ФИЛЬТРУЕМ КЛУБЫ ПО ТЕКУЩЕМУ УНИВЕРСИТЕТУ
+  const universityClubs = clubs.filter(club => 
+    club.university_id === authService.currentUniversity?.id
+  );
+
+  console.log('🎯 Клубы после фильтрации по университету:', universityClubs.length);
+
+  if (universityClubs.length === 0) {
     container.innerHTML = '';
     if (noResults) {
       noResults.classList.remove('hidden');
@@ -1527,7 +1533,7 @@ function renderFilteredClubs(clubs) {
   if (noResults) noResults.classList.add('hidden');
   container.innerHTML = '';
 
-  clubs.forEach(club => {
+  universityClubs.forEach(club => {
     const div = document.createElement('div');
     div.className = `club-card activity-${club.activity}`;
     
@@ -1553,7 +1559,7 @@ function renderFilteredClubs(clubs) {
     container.appendChild(div);
   });
   
-  console.log('✅ Клубы отрендерены:', clubs.length);
+  console.log('✅ Клубы отрендерены:', universityClubs.length);
 }
 
 function initializeClubForm() {

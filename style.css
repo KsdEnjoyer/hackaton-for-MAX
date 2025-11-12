@@ -2712,3 +2712,41 @@ body {
         bottom: 8px;
     }
 }
+
+.login-mode-selector {
+    margin: 15px 0;
+}
+
+.mode-tabs {
+    display: flex;
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 4px;
+    border: 2px solid #e2e8f0;
+}
+
+.mode-tab {
+    flex: 1;
+    padding: 10px 15px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.mode-tab.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(91, 109, 250, 0.3);
+}
+
+.mode-tab:not(.active):hover {
+    background: rgba(91, 109, 250, 0.1);
+}
