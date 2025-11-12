@@ -92,10 +92,11 @@ resetButton(button) {
   }
 
   // 🚪 Выход из системы
-  logout() {
+  // 🚪 Выход из системы
+logout() {
     if (this.currentUser) {
-      console.log('🚪 Выход:', this.currentUser.profile.firstName);
-      this.showNotification('info', 'До свидания!');
+        console.log('🚪 Выход:', this.currentUser.profile.firstName);
+        this.showNotification('info', 'До свидания!');
     }
     
     this.currentUser = null;
@@ -107,9 +108,18 @@ resetButton(button) {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('authToken');
     
+    // Скрываем панель при выходе
+    const tabs = document.querySelector('.tabs');
+    if (tabs) {
+        tabs.classList.add('hidden');
+    }
+    
+    // Добавляем надпись "ранний билд" при выходе
+    this.addBuildNotification();
+    
     // Показываем экран входа
     this.showLoginScreen();
-  }
+}
 
   // 🔍 Проверка авторизации при загрузке
   // 🔍 Проверка авторизации при загрузке
@@ -141,12 +151,25 @@ checkAuth() {
 
   // 🎨 Обновление UI после входа/выхода
 updateUI() {
-  this.updateHeader();
-  this.updateContent();
+    // Показываем/скрываем панель в зависимости от авторизации
+    const tabs = document.querySelector('.tabs');
+    if (tabs) {
+        if (this.isAuthenticated) {
+            tabs.classList.remove('hidden');
+            // Убираем надпись "ранний билд" после входа
+            this.removeBuildNotification();
+        } else {
+            tabs.classList.add('hidden');
+        }
+    }
+
+    this.updateHeader();
+    this.updateContent();
 }
 
   // 📱 Обновление шапки
-  // 📱 Обновление шапки (без цветов университета)
+// 📱 Обновление шапки
+// 📱 Обновление шапки
 updateHeader() {
     const header = document.querySelector('.header');
     if (!header) return;
@@ -161,6 +184,7 @@ updateHeader() {
                         ${this.currentUser.permissions.includes('teacher') ? ' | 👨‍🏫 Преподаватель' : ''}
                     </div>
                 </div>
+                <!-- КНОПКА ВЫХОДА ОСТАЕТСЯ ПОСЛЕ ВХОДА -->
                 <button id="logout-btn" class="logout-btn">
                     🚪 Выйти
                 </button>
@@ -381,26 +405,36 @@ reinitializeApp() {
 }
 
   // 👋 Показать экран входа
-  showLoginScreen() {
+  // 👋 Показать экран входа
+showLoginScreen() {
+    // Скрываем нижнюю панель
+    const tabs = document.querySelector('.tabs');
+    if (tabs) {
+        tabs.classList.add('hidden');
+    }
+
+    // Добавляем надпись "ранний билд"
+    this.addBuildNotification();
+
     const content = document.querySelector('.content');
     if (!content) return;
 
     content.innerHTML = `
-      <div class="login-container">
-        <div class="welcome-card">
-          <h2>🎓 Добро пожаловать!</h2>
-          <p>Выберите ваш университет для входа в систему</p>
-          <button id="start-login-btn" class="btn-primary" style="margin-top: 20px;">
-            Начать вход
-          </button>
+        <div class="login-container">
+            <div class="welcome-card">
+                <h2>🎓 Добро пожаловать!</h2>
+                <p>Выберите ваш университет для входа в систему</p>
+                <button id="start-login-btn" class="btn-primary" style="margin-top: 20px;">
+                    Начать вход
+                </button>
+            </div>
         </div>
-      </div>
     `;
 
     document.getElementById('start-login-btn').addEventListener('click', () => {
-      this.showUniversitySelection();
+        this.showUniversitySelection();
     });
-  }
+}
 
   // 🏙️ Показать выбор университета
   // 🏙️ Показать выбор университета с поиском
@@ -764,6 +798,25 @@ showLoginStep(modal, universityId) {
       }
     }, 3000);
   }
+  // 🏷️ Управление надписью "ранний билд"
+addBuildNotification() {
+    // Удаляем старую надпись если есть
+    this.removeBuildNotification();
+    
+    const notification = document.createElement('div');
+    notification.className = 'build-notification';
+    notification.textContent = 'ранний билд';
+    notification.id = 'build-notification';
+    
+    document.body.appendChild(notification);
+}
+
+removeBuildNotification() {
+    const existingNotification = document.getElementById('build-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+}
 }
 
 // Создаем глобальный экземпляр
