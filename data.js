@@ -18,13 +18,53 @@ const mockData = {
       shortName: "ТМП", 
       logo: "⚡️",
       isActive: true
+    },
+     {
+      id: 3,
+      name: "test",
+      city: "test",
+      shortName: "test",
+      logo: "test",
+      isActive: true
     }
   ],
 
   users: [
     {
       id: 1,
-      uid: "q466123",
+      uid: "123",
+      password: "123",
+      university_id: 1,
+      profile: {
+        firstName: "Далер",
+        lastName: "Каримов",
+        avatar: "👨‍🎓",
+        group: "М3235",
+        institute: "ФИТиП",
+        email: "email@example.ru"
+      },
+      permissions: ["headman"],
+      isActive: true
+    },
+    {
+      id: 100,
+      uid: "123",
+      password: "123",
+      university_id: 3,
+      profile: {
+        firstName: "Далер",
+        lastName: "Каримов",
+        avatar: "👨‍🎓",
+        group: "М3235",
+        institute: "ФИТиП",
+        email: "email@example.ru"
+      },
+      permissions: ["headman"],
+      isActive: true
+    },
+    {
+      id: 5,
+      uid: "111",
       password: "123",
       university_id: 1,
       profile: {
@@ -345,7 +385,6 @@ staff: [
       equipment: ["проектор", "доска", "ПК"],
       available: true
     },
-    // СПб университет аудитории
     {
       id: 1,
       university_id: 1,
@@ -666,6 +705,7 @@ function getCurrentWeek() {
 
 // Получить данные конкретного университета
 // 🔧 УТИЛИТЫ ДЛЯ РАБОТЫ С МУЛЬТИ-УНИВЕРСИТЕТСКИМИ ДАННЫМИ
+// 🔧 УТИЛИТЫ ДЛЯ РАБОТЫ С МУЛЬТИ-УНИВЕРСИТЕТСКИМИ ДАННЫМИ
 function getUniversityData(dataType, universityId = null) {
     const targetUniversityId = universityId || (authService?.currentUniversity?.id);
     
@@ -709,4 +749,95 @@ function getMockData() {
     events: getUniversityData('events', universityId),
     currentUser: authService.currentUser
   };
+}
+
+class DataBase {
+  // 🔹 ПОЛУЧИТЬ ДАННЫЕ ПО ТИПУ И УНИВЕРСИТЕТУ
+  static getData(dataType, universityId = null) {
+    if (!mockData[dataType]) {
+      console.error(`❌ Тип данных "${dataType}" не найден`);
+      return [];
+    }
+
+    if (universityId) {
+      return mockData[dataType].filter(item => item.university_id === universityId);
+    }
+
+    return mockData[dataType];
+  }
+
+  // 🔹 ДОБАВИТЬ НОВЫЕ ДАННЫЕ
+  static addData(dataType, newItem) {
+    if (!mockData[dataType]) {
+      console.error(`❌ Тип данных "${dataType}" не найден`);
+      return false;
+    }
+
+    // Генерируем ID если нет
+    if (!newItem.id) {
+      newItem.id = this.generateId();
+    }
+
+    mockData[dataType].push(newItem);
+    console.log(`✅ Добавлено в ${dataType}:`, newItem);
+    return true;
+  }
+
+  // 🔹 ОБНОВИТЬ ДАННЫЕ
+  static updateData(dataType, id, updates) {
+    if (!mockData[dataType]) {
+      console.error(`❌ Тип данных "${dataType}" не найден`);
+      return false;
+    }
+
+    const index = mockData[dataType].findIndex(item => item.id === id);
+    if (index === -1) {
+      console.error(`❌ Объект с ID ${id} не найден в ${dataType}`);
+      return false;
+    }
+
+    mockData[dataType][index] = { ...mockData[dataType][index], ...updates };
+    console.log(`✅ Обновлено в ${dataType}:`, mockData[dataType][index]);
+    return true;
+  }
+
+  // 🔹 УДАЛИТЬ ДАННЫЕ
+  static deleteData(dataType, id) {
+    if (!mockData[dataType]) {
+      console.error(`❌ Тип данных "${dataType}" не найден`);
+      return false;
+    }
+
+    const initialLength = mockData[dataType].length;
+    mockData[dataType] = mockData[dataType].filter(item => item.id !== id);
+    
+    if (mockData[dataType].length === initialLength) {
+      console.error(`❌ Объект с ID ${id} не найден в ${dataType}`);
+      return false;
+    }
+
+    console.log(`✅ Удалено из ${dataType}, ID: ${id}`);
+    return true;
+  }
+
+  // 🔹 НАЙТИ ПО ID
+  static findById(dataType, id) {
+    if (!mockData[dataType]) {
+      console.error(`❌ Тип данных "${dataType}" не найден`);
+      return null;
+    }
+
+    return mockData[dataType].find(item => item.id === id) || null;
+  }
+
+  // 🔹 СГЕНЕРИРОВАТЬ ID
+  static generateId() {
+    return Date.now() + Math.floor(Math.random() * 1000);
+  }
+}
+
+// 🔥 СТАРЫЕ ФУНКЦИИ ДЛЯ СОВМЕСТИМОСТИ
+function getUniversityData(dataType) {
+  if (!authService.currentUniversity) return [];
+  return DataBase.getData(dataType, authService.currentUniversity.id);
 }

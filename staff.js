@@ -1,8 +1,6 @@
-// staff.js - Интерфейс сотрудника
 class StaffInterface {
    constructor() {
         this.currentTab = 'requests';
-        // 🔥 ДОБАВИМ ПРОВЕРКУ НА ЗАГРУЗКУ DOM
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.initialize());
         } else {
@@ -20,7 +18,7 @@ class StaffInterface {
      createStaffLayout() {
         const content = document.querySelector('.content');
         if (!content) {
-            console.error('❌ Контейнер content не найден');
+            console.error('Контейнер content не найден');
             return;
         }
 
@@ -92,7 +90,7 @@ class StaffInterface {
             </div>
         `;
         
-        console.log('✅ Интерфейс сотрудника создан');
+        console.log('Интерфейс сотрудника создан');
     }   
 
     setupNavigation() {
@@ -145,7 +143,6 @@ class StaffInterface {
             </div>
         `;
 
-        // Добавляем обработчики для кнопок
         this.setupRequestHandlers();
     }
 

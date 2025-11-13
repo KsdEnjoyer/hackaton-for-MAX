@@ -6,7 +6,6 @@ class MultiUniversityAuth {
     this.isAuthenticated = false;
   }
 
-  // 🎨 УПРАВЛЕНИЕ СОСТОЯНИЕМ КНОПКИ
 showButtonLoading(button) {
     button.classList.add('loading');
     button.disabled = true;
@@ -25,7 +24,6 @@ showButtonError(button, message) {
     const originalText = button.querySelector('.btn-text').textContent;
     button.querySelector('.btn-text').textContent = message || 'Ошибка';
     
-    // Возвращаем оригинальный текст через 2 секунды
     setTimeout(() => {
         button.classList.remove('error');
         button.disabled = false;
@@ -38,33 +36,27 @@ resetButton(button) {
     button.disabled = false;
 }
   
-  // 🏙️ Получить список городов
   getAvailableCities() {
     const cities = [...new Set(mockData.universities.map(u => u.city))];
     return cities.sort();
   }
 
-  // 🏛️ Получить университеты по городу
   getUniversitiesByCity(city) {
     return mockData.universities.filter(u => u.city === city && u.isActive);
   }
 
-  // 🔐 Вход в систему
   async login(universityId, uid, password, isStaff = false) {
     console.log('🔐 Попытка входа в университет:', universityId, 'UID:', uid, 'Тип:', isStaff ? 'сотрудник' : 'студент');
     
-    // Проверяем университет
     const university = mockData.universities.find(u => u.id === universityId);
     if (!university) {
       this.showNotification('error', 'Университет не найден');
       return { success: false, error: 'Университет не найден' };
     }
 
-    // Ищем пользователя (студента или сотрудника)
     let user = null;
     
     if (isStaff) {
-      // Ищем среди сотрудников
       user = mockData.staff.find(u => 
         u.university_id === universityId && 
         u.uid === uid && 
@@ -72,7 +64,6 @@ resetButton(button) {
         u.isActive
       );
     } else {
-      // Ищем среди студентов
       user = mockData.users.find(u => 
         u.university_id === universityId && 
         u.uid === uid && 
@@ -86,16 +77,14 @@ resetButton(button) {
     this.currentUniversity = university;
     this.isAuthenticated = true;
     
-    // Сохраняем в localStorage
     localStorage.setItem('currentUniversity', JSON.stringify(university));
     localStorage.setItem('currentUser', JSON.stringify(user));
     localStorage.setItem('authToken', 'jjk-auth-' + user.id);
     localStorage.setItem('userType', isStaff ? 'staff' : 'student');
     
-    console.log('✅ Успешный вход:', user.profile.firstName, 'в', university.name, 'как', isStaff ? 'сотрудник' : 'студент');
+    console.log('Успешный вход:', user.profile.firstName, 'в', university.name, 'как', isStaff ? 'сотрудник' : 'студент');
     this.showNotification('success', `Добро пожаловать в ${university.name}!`);
     
-    // 🔥 ТОЛЬКО ПЕРЕКЛЮЧАЕМ ИНТЕРФЕЙС, НЕ ВЫЗЫВАЕМ reinitializeApp
     console.log('🔄 Переключаем интерфейс на:', isStaff ? 'staff' : 'student');
     this.switchUserInterface(isStaff ? 'staff' : 'student');
     
@@ -106,8 +95,6 @@ resetButton(button) {
   }
 }
 
-  // 🚪 Выход из системы
-// 🚪 Выход из системы (ИСПРАВЛЕННАЯ ВЕРСИЯ)
 logout() {
     if (this.currentUser) {
         console.log('🚪 Выход:', this.currentUser.profile.firstName);
@@ -118,24 +105,17 @@ logout() {
     this.currentUniversity = null;
     this.isAuthenticated = false;
     
-    // 🔥 ПОЛНАЯ ОЧИСТКА LOCALSTORAGE
     localStorage.clear();
     
-    // Скрываем панель при выходе
     const tabs = document.querySelector('.tabs');
     if (tabs) {
         tabs.classList.add('hidden');
     }
     
-    // Показываем экран входа
     this.showLoginScreen();
 }
 
-  // 🔍 Проверка авторизации при загрузке
-  // 🔍 Проверка авторизации при загрузке
-// 🔍 Проверка авторизации при загрузке
-// 🔍 Проверка авторизации при загрузке
-// 🔍 Проверка авторизации при загрузке
+
 checkAuth() {
   console.log('🔍 checkAuth начат');
   const savedUser = localStorage.getItem('currentUser');
@@ -146,69 +126,52 @@ checkAuth() {
       this.currentUser = JSON.parse(savedUser);
       this.currentUniversity = JSON.parse(savedUniversity);
       this.isAuthenticated = true;
-      
-      // 🔥 ОПРЕДЕЛЯЕМ ТИП ПОЛЬЗОВАТЕЛЯ ИЗ ДАННЫХ, А НЕ ИЗ LOCALSTORAGE
       const userType = this.currentUser.permissions.includes('staff') ? 'staff' : 'student';
       console.log('🔍 Автоматический вход:', this.currentUser.profile.firstName, 'как', userType);
-      
-      // 🔥 НЕ ВЫЗЫВАЕМ updateUI() ЗДЕСЬ - ЭТО СДЕЛАЕТ initializeApp()
-      // Просто обновляем шапку, но не весь контент
-      console.log('🔍 Вызываем updateHeader()');
-      this.updateHeader();
-      
-      // 🔥 ВОЗВРАЩАЕМ ТИП ПОЛЬЗОВАТЕЛЯ ДЛЯ ДАЛЬНЕЙШЕЙ ОБРАБОТКИ
-      console.log('🔍 checkAuth возвращает:', userType);
+      this.switchUserInterface(userType);
+      console.log('checkAuth возвращает:', userType);
       return userType;
     } catch (error) {
-      console.error('❌ Ошибка восстановления сессии:', error);
+      console.error('Ошибка восстановления сессии:', error);
       this.logout();
       return false;
     }
   }
   
-  // Если нет сохраненной сессии - показываем экран входа
-  console.log('🔐 Нет сохраненной сессии, показываем экран входа');
+  console.log('Нет сохраненной сессии, показываем экран входа');
   this.showLoginScreen();
   return false;
 }
 
-  // 🎨 Обновление UI после входа/выхода
-// 🎨 Обновление UI после входа/выхода
-// 🎨 Обновление UI после входа/выхода
-// 🎨 Обновление UI после входа/выхода
+
 updateUI() {
     console.log('🔄 updateUI вызван, isAuthenticated:', this.isAuthenticated);
     
-    // 🔥 УБИРАЕМ ПЛАШКУ "РАННИЙ БИЛД" ПРИ АВТОРИЗАЦИИ
     if (this.isAuthenticated) {
         this.removeBuildNotification();
     }
     
-    // Показываем/скрываем панель в зависимости от авторизации
     const tabs = document.querySelector('.tabs');
     if (tabs) {
-        console.log('📌 Панель ДО updateUI:', tabs.classList.contains('hidden'));
+        console.log('Панель ДО updateUI:', tabs.classList.contains('hidden'));
         
         if (this.isAuthenticated) {
             tabs.classList.remove('hidden');
-            console.log('📌 Панель ПОСЛЕ remove hidden:', tabs.classList.contains('hidden'));
+            console.log('Панель ПОСЛЕ remove hidden:', tabs.classList.contains('hidden'));
         } else {
             tabs.classList.add('hidden');
-            console.log('📌 Панель ПОСЛЕ add hidden:', tabs.classList.contains('hidden'));
+            console.log('Панель ПОСЛЕ add hidden:', tabs.classList.contains('hidden'));
         }
     }
 
-    // 🔥 ОБНОВЛЯЕМ ТОЛЬКО ШАПКУ, А НЕ ВЕСЬ КОНТЕНТ
     this.updateHeader();
     
-    console.log('✅ updateUI завершен');
+    console.log('updateUI завершен');
 }
 
-// 📱 Обновление шапки
 updateHeader() {
     const header = document.querySelector('.header');
     if (!header) return;
-
     if (this.isAuthenticated) {
         header.innerHTML = `
             <div class="header-authenticated">
@@ -237,9 +200,7 @@ updateHeader() {
     }
 }
 
-// 🎨 Обновление цвета активной вкладки (опционально)
 updateActiveTabColor() {
-    // Если хочешь, чтобы активная вкладка тоже была цвета университета
     const style = document.createElement('style');
     style.id = 'university-theme';
     style.textContent = `
@@ -251,191 +212,171 @@ updateActiveTabColor() {
         }
     `;
     
-    // Удаляем старые стили если есть
     const oldStyle = document.getElementById('university-theme');
     if (oldStyle) oldStyle.remove();
     
     document.head.appendChild(style);
 }
 
-  // 🔄 Обновление контента
-  // 🔄 Обновление контента
-// 🔄 Обновление контента
 updateContent() {
-  console.log('🔄 updateContent вызван для студента');
+  console.log('🔄 Полное обновление контента для студента');
   
-  // 🔥 ВОССТАНАВЛИВАЕМ СТАНДАРТНУЮ СТРУКТУРУ КОНТЕНТА ТОЛЬКО ЕСЛИ ЕЕ НЕТ
   const content = document.querySelector('.content');
-  if (content && !content.querySelector('#feed')) {
-    console.log('🔄 Создаем структуру контента для студента');
-    content.innerHTML = `
-      <!-- Лента -->
-      <section id="feed" class="tab-content active">
-        <div class="schedule-card">
-          <h2>📅 Сегодня</h2>
-          <div id="today-schedule"></div>
-        </div>
+  if (!content) return;
+  content.innerHTML = `
+    <!-- Лента -->
+    <section id="feed" class="tab-content active">
+      <div class="schedule-card">
+        <h2>📅 Сегодня</h2>
+        <div id="today-schedule"></div>
+      </div>
 
-        <div class="news-feed">
-          <h2>📢 Новости ${this.currentUniversity.shortName}</h2>
-          <div id="news-list"></div>
-        </div>
-      </section>
+      <div class="news-feed">
+        <div id="news-list"></div>
+      </div>
+    </section>
 
-      <!-- Расписание -->
-      <section id="schedule" class="tab-content">
-        <div class="schedule-header">
-          <button id="prev-week">←</button>
-          <h3 id="current-week"></h3>
-          <button id="next-week">→</button>
-        </div>
-        <div id="schedule-grid"></div>
-        <button id="month-view" class="month-btn">📆 Месячный вид</button>
-      </section>
+    <!-- Расписание -->
+    <section id="schedule" class="tab-content">
+      <div class="schedule-header">
+        <button id="prev-week">←</button>
+        <h3 id="current-week"></h3>
+        <button id="next-week">→</button>
+      </div>
+      <div id="schedule-grid"></div>
+      <button id="month-view" class="month-btn">📆 Месячный вид</button>
+    </section>
 
-      <!-- Сервисы -->
-      <section id="services" class="tab-content">
-        <h2>⚙️ Сервисы университета</h2>
-        <div class="services-grid">
-          <div class="service-card" data-service="library">
-            <div class="service-icon">📖</div>
-            <h3>Библиотека</h3>
-            <p>Заказ книг и учебников</p>
-          </div>
-          <div class="service-card" data-service="documents">
-            <div class="service-icon">📄</div>
-            <h3>Документы</h3>
-            <p>Справки и выписки</p>
-          </div>
-          <div class="service-card" data-service="dormitory">
-            <div class="service-icon">🏠</div>
-            <h3>Общежитие</h3>
-            <p>Заявки и вопросы</p>
-          </div>
-          <div class="service-card" data-service="create-club">
-            <div class="service-icon">🎭</div>
-            <h3>Создать клуб</h3>
-            <p>Организуй свое сообщество</p>
-          </div>
-          <div class="service-card" data-service="book-room">
-            <div class="service-icon">🏢</div>
-            <h3>Бронь помещений</h3>
-            <p>Аудитории, переговорки</p>
-          </div>
-          <div class="service-card" data-service="events">
-            <div class="service-icon">📅</div>
-            <h3>Мероприятия</h3>
-            <p>Конференции, встречи</p>
-          </div>
+    <!-- Сервисы -->
+    <section id="services" class="tab-content">
+      <h2>⚙️ Сервисы университета</h2>
+      <div class="services-grid">
+        <div class="service-card" data-service="library">
+          <div class="service-icon">📖</div>
+          <h3>Библиотека</h3>
+          <p>Заказ книг и учебников</p>
         </div>
-      </section>
+        <div class="service-card" data-service="documents">
+          <div class="service-icon">📄</div>
+          <h3>Документы</h3>
+          <p>Справки и выписки</p>
+        </div>
+        <div class="service-card" data-service="dormitory">
+          <div class="service-icon">🏠</div>
+          <h3>Общежитие</h3>
+          <p>Заявки и вопросы</p>
+        </div>
+        <div class="service-card" data-service="create-club">
+          <div class="service-icon">🎭</div>
+          <h3>Создать клуб</h3>
+          <p>Организуй свое сообщество</p>
+        </div>
+        <div class="service-card" data-service="book-room">
+          <div class="service-icon">🏢</div>
+          <h3>Бронь помещений</h3>
+          <p>Аудитории, переговорки</p>
+        </div>
+        <div class="service-card" data-service="events">
+          <div class="service-icon">📅</div>
+          <h3>Мероприятия</h3>
+          <p>Конференции, встречи</p>
+        </div>
+      </div>
+    </section>
 
-      <!-- Клубы -->
-      <section id="clubs" class="tab-content">
-        <h2>🎭 Студенческие клубы ${this.currentUniversity.shortName}</h2>
+    <!-- Клубы -->
+    <section id="clubs" class="tab-content">
+      <h2>🎭 Студенческие клубы ${this.currentUniversity.shortName}</h2>
+      
+      <div class="smart-search">
+        <div class="search-header">
+          <div class="search-input-container">
+            <input type="text" id="club-search" placeholder="Найди клуб по интересам..." class="search-input">
+            <span class="search-icon">🔍</span>
+          </div>
+          <button id="smart-filters-btn" class="filters-btn">🎯 Умный подбор</button>
+        </div>
         
-        <div class="smart-search">
-          <div class="search-header">
-            <div class="search-input-container">
-              <input type="text" id="club-search" placeholder="Найди клуб по интересам..." class="search-input">
-              <span class="search-icon">🔍</span>
-            </div>
-            <button id="smart-filters-btn" class="filters-btn">🎯 Умный подбор</button>
-          </div>
-          
-          <div class="quick-filters">
-            <button class="filter-btn active" data-filter="all">Все</button>
-            <button class="filter-btn" data-filter="popular">Популярные</button>
-            <button class="filter-btn" data-filter="tech">IT</button>
-            <button class="filter-btn" data-filter="creative">Творчество</button>
-            <button class="filter-btn" data-filter="sports">Спорт</button>
-            <button class="filter-btn" data-filter="new">Новичкам</button>
-          </div>
+        <div class="quick-filters">
+          <button class="filter-btn active" data-filter="all">Все</button>
+          <button class="filter-btn" data-filter="popular">Популярные</button>
+          <button class="filter-btn" data-filter="tech">IT</button>
+          <button class="filter-btn" data-filter="creative">Творчество</button>
+          <button class="filter-btn" data-filter="sports">Спорт</button>
+          <button class="filter-btn" data-filter="new">Новичкам</button>
         </div>
+      </div>
 
-        <div id="smart-filters" class="smart-filters hidden">
-          <h4>🎯 Подбери клуб по интересам</h4>
-          
-          <div class="filter-group">
-            <label>Уровень активности:</label>
-            <select id="activity-filter" class="filter-select">
-              <option value="any">Любой</option>
-              <option value="high">Высокая</option>
-              <option value="medium">Средняя</option>
-              <option value="low">Низкая</option>
-            </select>
-          </div>
-          
-          <div class="filter-group">
-            <label>День встреч:</label>
-            <select id="day-filter" class="filter-select">
-              <option value="any">Любой день</option>
-              <option value="понедельник">Понедельник</option>
-              <option value="вторник">Вторник</option>
-              <option value="среда">Среда</option>
-              <option value="четверг">Четверг</option>
-              <option value="пятница">Пятница</option>
-              <option value="суббота">Суббота</option>
-            </select>
-          </div>
-          
-          <div class="filter-group">
-            <label>Размер клуба:</label>
-            <select id="size-filter" class="filter-select">
-              <option value="any">Любой</option>
-              <option value="small">Маленький (до 30)</option>
-              <option value="medium">Средний (30-80)</option>
-              <option value="large">Большой (80+)</option>
-            </select>
-          </div>
-          
-          <button id="apply-filters" class="apply-btn">Применить фильтры</button>
-        </div>
-
-        <div id="clubs-list" class="clubs-grid"></div>
+      <div id="smart-filters" class="smart-filters hidden">
+        <h4>🎯 Подбери клуб по интересам</h4>
         
-        <div id="no-results" class="no-results hidden">
-          <div class="no-results-icon">🔍</div>
-          <h3>Не нашли подходящий клуб?</h3>
-          <p>Попробуйте изменить фильтры или посмотрите все клубы</p>
-          <button id="reset-filters" class="reset-btn">Показать все клубы</button>
+        <div class="filter-group">
+          <label>Уровень активности:</label>
+          <select id="activity-filter" class="filter-select">
+            <option value="any">Любой</option>
+            <option value="high">Высокая</option>
+            <option value="medium">Средняя</option>
+            <option value="low">Низкая</option>
+          </select>
         </div>
-      </section>
-    `;
-  } else {
-    console.log('🔄 Структура контента уже существует, пропускаем создание');
-  }
+        
+        <div class="filter-group">
+          <label>День встреч:</label>
+          <select id="day-filter" class="filter-select">
+            <option value="any">Любой день</option>
+            <option value="понедельник">Понедельник</option>
+            <option value="вторник">Вторник</option>
+            <option value="среда">Среда</option>
+            <option value="четверг">Четверг</option>
+            <option value="пятница">Пятница</option>
+            <option value="суббота">Суббота</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>Размер клуба:</label>
+          <select id="size-filter" class="filter-select">
+            <option value="any">Любой</option>
+            <option value="small">Маленький (до 30)</option>
+            <option value="medium">Средний (30-80)</option>
+            <option value="large">Большой (80+)</option>
+          </select>
+        </div>
+        
+        <button id="apply-filters" class="apply-btn">Применить фильтры</button>
+      </div>
 
-  // 🔥 ПЕРЕИНИЦИАЛИЗАЦИЯ ТОЛЬКО ДЛЯ СТУДЕНТОВ
-  if (typeof determineUserType === 'function' && determineUserType() === 'student') {
-    console.log('🔄 Запускаем reinitializeApp для студента');
-    this.reinitializeApp();
-  } else {
-    console.log('🔄 Пропускаем reinitializeApp (не студент)');
-  }
+      <div id="clubs-list" class="clubs-grid"></div>
+      
+      <div id="no-results" class="no-results hidden">
+        <div class="no-results-icon">🔍</div>
+        <h3>Не нашли подходящий клуб?</h3>
+        <p>Попробуйте изменить фильтры или посмотрите все клубы</p>
+        <button id="reset-filters" class="reset-btn">Показать все клубы</button>
+      </div>
+    </section>
+  `;
+
+console.log('🔄 Запускаем базовые функции студента');
+this.reinitializeApp();
 }
 
-// 🔥 ПЕРЕКЛЮЧЕНИЕ ИНТЕРФЕЙСА (для использования после входа)
+
 switchUserInterface(userType) {
-  console.log('🔄 Переключение интерфейса на:', userType);
+  console.log('🔄 Полное переключение интерфейса на:', userType);
+  const content = document.querySelector('.content');
+  if (content) {
+    content.innerHTML = '';
+  }
   
   const tabs = document.querySelector('.tabs');
-  const content = document.querySelector('.content');
   
-  // 🔥 УБИРАЕМ ПЛАШКУ "РАННИЙ БИЛД" ПРИ УСПЕШНОМ ВХОДЕ
   this.removeBuildNotification();
   
   if (userType === 'staff') {
-    // 🔥 СКРЫВАЕМ СТУДЕНЧЕСКУЮ ПАНЕЛЬ ДЛЯ СОТРУДНИКОВ
     if (tabs) {
       console.log('📌 Скрываем панель для сотрудника');
       tabs.classList.add('hidden');
-    }
-    
-    // Очищаем контент и инициализируем интерфейс сотрудника
-    if (content) {
-      console.log('📌 Очищаем контент для сотрудника');
-      content.innerHTML = '';
     }
     
     if (typeof initializeStaffApp === 'function') {
@@ -443,80 +384,70 @@ switchUserInterface(userType) {
       initializeStaffApp();
     }
   } else {
-    // 🔥 ПОКАЗЫВАЕМ СТУДЕНЧЕСКУЮ ПАНЕЛЬ ДЛЯ СТУДЕНТОВ
     if (tabs) {
       console.log('📌 Показываем панель для студента');
       tabs.classList.remove('hidden');
     }
     
-    // Восстанавливаем студенческий интерфейс
-    console.log('🔄 Вызываем updateContent для студента');
+    console.log('🔄 Полная перерисовка студенческого интерфейса');
     this.updateContent();
   }
+  
+  this.updateHeader();
 }
 
-// 🔧 ПЕРЕИНИЦИАЛИЗАЦИЯ ВСЕГО ПРИЛОЖЕНИЯ
-// 🔧 ПЕРЕИНИЦИАЛИЗАЦИЯ ВСЕГО ПРИЛОЖЕНИЯ
 reinitializeApp() {
   console.log('🔄 Переинициализация приложения...');
-  
-  // 🔥 УБЕДИМСЯ ЧТО ПАНЕЛЬ ВИДНА
   const tabs = document.querySelector('.tabs');
   if (tabs && determineUserType() === 'student') {
     tabs.classList.remove('hidden');
-    console.log('✅ Панель восстановлена в reinitializeApp');
+    console.log('Панель восстановлена в reinitializeApp');
   }
   
-  // 1. Восстанавливаем навигацию
   if (typeof setupNavigation === 'function') {
     setupNavigation();
   }
   
-  // 2. Восстанавливаем сервисы
   if (typeof setupServices === 'function') {
     setupServices();
   }
   
-  // 3. Рендерим данные
+  if (typeof newsAlreadyRendered !== 'undefined') {
+    newsAlreadyRendered = false;
+  }
+  
   if (typeof renderTodaySchedule === 'function') renderTodaySchedule();
-  if (typeof renderNews === 'function') renderNews();
+  
+  if (typeof renderNews === 'function' && determineUserType() === 'student') {
+    console.log('🔄 Вызываем renderNews для студента');
+    renderNews();
+  }
+  
   if (typeof renderClubs === 'function') renderClubs();
   if (typeof renderWeekSchedule === 'function') renderWeekSchedule();
-  
-  // 4. Обновляем информацию
   if (typeof updateWeekInfo === 'function') updateWeekInfo();
   if (typeof updateUserInfo === 'function') updateUserInfo();
   
-  // 5. Восстанавливаем умный поиск клубов
   if (typeof initializeSmartSearch === 'function') {
-    // Даем небольшую задержку для гарантии, что DOM готов
     setTimeout(() => {
       initializeSmartSearch();
     }, 100);
   }
   
-  console.log('✅ Приложение переинициализировано');
+  console.log('Приложение переинициализировано');
 }
 
-  // 👋 Показать экран входа
-// 👋 Показать экран входа
 showLoginScreen() {
     console.log('🔄 showLoginScreen вызван');
-    
-    // Скрываем нижнюю панель ТОЛЬКО ЕСЛИ это экран входа
     const tabs = document.querySelector('.tabs');
     if (tabs) {
-        console.log('📌 Панель в showLoginScreen ДО:', tabs.classList.contains('hidden'));
+        console.log('Панель в showLoginScreen ДО:', tabs.classList.contains('hidden'));
         tabs.classList.add('hidden');
-        console.log('📌 Панель в showLoginScreen ПОСЛЕ:', tabs.classList.contains('hidden'));
+        console.log('Панель в showLoginScreen ПОСЛЕ:', tabs.classList.contains('hidden'));
     }
-
-    // Добавляем надпись "ранний билд"
     this.addBuildNotification();
-
     const content = document.querySelector('.content');
     if (!content) return;
-
     content.innerHTML = `
         <div class="login-container">
             <div class="welcome-card">
@@ -533,11 +464,9 @@ showLoginScreen() {
         this.showUniversitySelection();
     });
     
-    console.log('✅ showLoginScreen завершен');
+    console.log('showLoginScreen завершен');
 }
 
-  // 🏙️ Показать выбор университета
-  // 🏙️ Показать выбор университета с поиском
 showUniversitySelection() {
     const modal = document.createElement('div');
     modal.className = 'service-modal active university-selection';
@@ -614,27 +543,20 @@ showUniversitySelection() {
     this.setupUniversitySearchHandlers(modal);
 }
 
-  // 🎮 Обработчики для выбора университета
   setupUniversitySearchHandlers(modal) {
     const searchInput = modal.querySelector('#university-search');
     const searchResults = modal.querySelector('#search-results');
     const citiesChips = modal.querySelector('#cities-chips');
-    
-    // Заполняем популярные города
     this.setupPopularCities(citiesChips, modal);
-    
-    // Поиск при вводе
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim().toLowerCase();
         this.performUniversitySearch(query, searchResults, modal);
     });
     
-    // Фокус на поиск при открытии
     setTimeout(() => {
         searchInput.focus();
     }, 100);
     
-    // Обработчики закрытия
     this.setupModalHandlers(modal);
 }
   setupPopularCities(citiesChips, modal) {
@@ -645,7 +567,6 @@ showUniversitySelection() {
         </button>
     `).join('');
     
-    // Обработчики для чипсов городов
     citiesChips.querySelectorAll('.city-chip').forEach(chip => {
         chip.addEventListener('click', () => {
             const city = chip.getAttribute('data-city');
@@ -666,7 +587,6 @@ performUniversitySearch(query, searchResults, modal) {
         const shortName = uni.shortName.toLowerCase();
         const city = uni.city.toLowerCase();
         
-        // Ищем по полному названию, короткому названию или городу
         return fullName.includes(searchText) || 
                shortName.includes(searchText) || 
                city.includes(searchText);
@@ -675,13 +595,11 @@ performUniversitySearch(query, searchResults, modal) {
     this.displaySearchResults(filteredUniversities, searchResults, modal);
 }
 
-// 📋 Показать все университеты
 showAllUniversities(searchResults, modal) {
     const allUniversities = mockData.universities.filter(u => u.isActive);
     this.displaySearchResults(allUniversities, searchResults, modal);
 }
 
-// 🎯 Отображение результатов поиска
 displaySearchResults(universities, searchResults, modal) {
     if (universities.length === 0) {
         searchResults.innerHTML = `
@@ -707,7 +625,6 @@ displaySearchResults(universities, searchResults, modal) {
         </div>
     `).join('');
     
-    // Обработчики выбора университета
     searchResults.querySelectorAll('.university-result').forEach(result => {
         result.addEventListener('click', (e) => {
             if (!e.target.classList.contains('select-uni-btn')) {
@@ -717,7 +634,6 @@ displaySearchResults(universities, searchResults, modal) {
         });
     });
     
-    // Обработчики для кнопок "Выбрать"
     searchResults.querySelectorAll('.select-uni-btn.result').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -727,7 +643,6 @@ displaySearchResults(universities, searchResults, modal) {
     });
 }
 
-  // 🏛️ Показать шаг выбора университета
   showUniversitiesStep(modal, city) {
     const universities = this.getUniversitiesByCity(city);
     const universitiesList = modal.querySelector('#universities-list');
@@ -745,10 +660,8 @@ displaySearchResults(universities, searchResults, modal) {
       </div>
     `).join('');
 
-    // Переключаем шаги
     this.switchStep(modal, 'step-university');
 
-    // Обработчики выбора университета
     universitiesList.querySelectorAll('.select-uni-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const universityCard = btn.closest('.university-card');
@@ -757,14 +670,11 @@ displaySearchResults(universities, searchResults, modal) {
       });
     });
 
-    // Кнопка "Назад"
     modal.querySelector('.back-btn').addEventListener('click', () => {
       this.switchStep(modal, 'step-city');
     });
   }
 
-  // 🔐 Показать шаг входа
-// 🔐 Показать шаг входа (ДОБАВЛЯЕМ ПЕРЕКЛЮЧАТЕЛЬ)
 showLoginStep(modal, universityId) {
     const university = mockData.universities.find(u => u.id === universityId);
     const selectedUniSpan = modal.querySelector('#selected-university');
@@ -773,7 +683,6 @@ showLoginStep(modal, universityId) {
     
     selectedUniSpan.textContent = university.name;
     
-    // Создаем бейдж университета
     universityBadge.innerHTML = `
         <div class="selected-university-badge">
             <span class="uni-badge-logo">${university.logo}</span>
@@ -796,39 +705,32 @@ showLoginStep(modal, universityId) {
         </div>
     `;
     
-    // Переключаем шаги
     this.switchStep(modal, 'step-login');
     
-    // Фокус на поле UID
     setTimeout(() => {
         modal.querySelector('#university-uid').focus();
     }, 100);
 
-    // 🔥 ОБРАБОТЧИКИ ПЕРЕКЛЮЧЕНИЯ РЕЖИМА
     const modeTabs = modal.querySelectorAll('.mode-tab');
-    let currentMode = 'student'; // По умолчанию студент
+    let currentMode = 'student'; 
     
     modeTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             modeTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             currentMode = tab.getAttribute('data-mode');
-            
-            // Обновляем подсказки в зависимости от режима
             const uidInput = modal.querySelector('#university-uid');
             const passwordHint = modal.querySelector('.password-hint');
-            
             if (currentMode === 'staff') {
                 uidInput.placeholder = "Введите ваш Staff ID";
                 passwordHint.innerHTML = '<small>Демо-пароль для сотрудников: <code>123</code></small>';
             } else {
-                uidInput.placeholder = "Введите ваш UID (например: q466123)";
+                uidInput.placeholder = "Введите ваш UID (например: 123)";
                 passwordHint.innerHTML = '<small>Демо-пароль: <code>123</code></small>';
             }
         });
     });
 
-    // Обработчик формы входа
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -841,7 +743,6 @@ showLoginStep(modal, universityId) {
             return;
         }
         
-        // Показываем загрузку
         this.showButtonLoading(loginBtn);
         
         try {
@@ -860,22 +761,18 @@ showLoginStep(modal, universityId) {
         }
     });
 
-    // Кнопка "Назад"
     modal.querySelector('.back-btn').addEventListener('click', () => {
         this.switchStep(modal, 'step-search');
-        // Очищаем форму при возврате
         loginForm.reset();
     });
 }
 
-  // 🔄 Переключение между шагами
   switchStep(modal, stepId) {
     const steps = modal.querySelectorAll('.step');
     steps.forEach(step => step.classList.remove('active'));
     modal.querySelector(`#${stepId}`).classList.add('active');
   }
 
-  // ❌ Обработчики закрытия модалки
   setupModalHandlers(modal) {
     modal.querySelector('.close-modal').addEventListener('click', () => {
       document.body.removeChild(modal);
@@ -888,7 +785,6 @@ showLoginStep(modal, universityId) {
     });
   }
 
-  // 🔔 Уведомления
   showNotification(type, message) {
     const notification = document.createElement('div');
     notification.className = `auth-notification ${type}`;
@@ -910,16 +806,12 @@ showLoginStep(modal, universityId) {
       }
     }, 3000);
   }
-  // 🏷️ Управление надписью "ранний билд"
 addBuildNotification() {
-    // Удаляем старую надпись если есть
     this.removeBuildNotification();
-    
     const notification = document.createElement('div');
     notification.className = 'build-notification';
     notification.textContent = 'ранний билд';
     notification.id = 'build-notification';
-    
     document.body.appendChild(notification);
 }
 
@@ -931,5 +823,4 @@ removeBuildNotification() {
 }
 }
 
-// Создаем глобальный экземпляр
 const authService = new MultiUniversityAuth();

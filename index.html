@@ -9,15 +9,11 @@
 <script src="auth.js"></script>
 <body>
   <div class="app">
-    <!-- Шапка -->
     <header class="header">
       <h1>📚 Учебный портал</h1>
       <div class="user-info">Иван Иванов | ИВТ-321</div>
     </header>
-
-    <!-- Контент -->
     <main class="content">
-      <!-- Лента -->
       <section id="feed" class="tab-content active">
         <div class="schedule-card">
           <h2>📅 Сегодня</h2>
@@ -25,12 +21,10 @@
         </div>
 
         <div class="news-feed">
-          <h2>📢 Новости ВУЗа</h2>
           <div id="news-list"></div>
         </div>
       </section>
 
-      <!-- Расписание -->
       <section id="schedule" class="tab-content">
         <div class="schedule-header">
           <button id="prev-week">←</button>
@@ -41,13 +35,10 @@
         <button id="month-view" class="month-btn">📆 Месячный вид</button>
       </section>
 
-      <!-- Сервисы -->
-<!-- Сервисы -->
 <section id="services" class="tab-content">
     <h2>⚙️ Сервисы университета</h2>
     
     <div class="services-grid">
-        <!-- Существующие сервисы -->
         <div class="service-card" data-service="library">
             <div class="service-icon">📖</div>
             <h3>Библиотека</h3>
@@ -86,11 +77,9 @@
     </div>
 </section>
 
-      <!-- Клубы -->
 <section id="clubs" class="tab-content">
     <h2>🎭 Студенческие клубы</h2>
     
-    <!-- Умный поиск -->
     <div class="smart-search">
         <div class="search-header">
             <div class="search-input-container">
@@ -100,7 +89,6 @@
             <button id="smart-filters-btn" class="filters-btn">🎯 Умный подбор</button>
         </div>
         
-        <!-- Быстрые фильтры -->
         <div class="quick-filters">
             <button class="filter-btn active" data-filter="all">Все</button>
             <button class="filter-btn" data-filter="popular">Популярные</button>
@@ -111,7 +99,6 @@
         </div>
     </div>
 
-    <!-- Умные фильтры -->
     <div id="smart-filters" class="smart-filters hidden">
         <h4>🎯 Подбери клуб по интересам</h4>
         
@@ -151,10 +138,8 @@
         <button id="apply-filters" class="apply-btn">Применить фильтры</button>
     </div>
 
-    <!-- Список клубов -->
     <div id="clubs-list" class="clubs-grid"></div>
     
-    <!-- Сообщение "нет результатов" -->
     <div id="no-results" class="no-results hidden">
         <div class="no-results-icon">🔍</div>
         <h3>Не нашли подходящий клуб?</h3>
@@ -165,8 +150,6 @@
     </main>
 
     
-
-    <!-- Нижняя панель -->
     <nav class="tabs">
       <button class="tab-button active" data-tab="feed">
         <i>📰</i>
@@ -196,7 +179,6 @@
         </div>
         
         <form id="create-club-form" class="club-form">
-            <!-- Основная информация -->
             <div class="form-group">
                 <label for="club-name">Название клуба *</label>
                 <input type="text" id="club-name" required maxlength="50" placeholder="Например, Киберспортивный клуб">
@@ -234,16 +216,11 @@
                             <button type="button" class="emoji-category" data-category="objects">Объекты</button>
                         </div>
                         <div class="emoji-grid" id="emoji-grid">
-                            <!-- Эмодзи будут генерироваться через JS -->
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 🔥 НОВЫЕ ПОЛЯ -->
-            
-            <!-- Формат клуба -->
-            <!-- Формат клуба -->
             <div class="form-group">
                 <label>Формат клуба *</label>
                 <div class="radio-group">
@@ -276,7 +253,6 @@
                 </div>
             </div>
 
-            <!-- Максимальное количество участников -->
             <div class="form-group">
                 <label for="club-max-members">Максимум участников</label>
                 <select id="club-max-members">
@@ -289,7 +265,6 @@
                 </select>
             </div>
 
-            <!-- День встреч -->
             <div class="form-group">
                 <label for="club-meeting-day">День встреч *</label>
                 <select id="club-meeting-day" required>
@@ -304,18 +279,15 @@
                 </select>
             </div>
 
-            <!-- Контактная информация -->
             <div class="form-group">
                 <label for="club-contact">Контакт (Telegram/Email) *</label>
                 <input type="text" id="club-contact" required placeholder="@username или email@example.com">
             </div>
 
-            <!-- Теги -->
             <div class="form-group">
                 <label>Теги (выберите 1-5 тегов) *</label>
                 <div class="tags-hint-form">Нажмите на теги чтобы выбрать их</div>
                 <div class="tags-selector" id="club-tags-selector">
-                    <!-- Теги будут генерироваться автоматически -->
                 </div>
                 <div class="selected-tags-preview" id="club-selected-tags"></div>
             </div>
@@ -328,7 +300,7 @@
     </div>
 </div>
 
-
+  
   <script src="data.js"></script>
   <script src="staff.js"></script> 
   <script src="student_inter.js"></script>
