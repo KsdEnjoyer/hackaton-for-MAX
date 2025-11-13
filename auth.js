@@ -247,9 +247,9 @@ updateContent() {
       <h2>⚙️ Сервисы университета</h2>
       <div class="services-grid">
         <div class="service-card" data-service="library">
-          <div class="service-icon">📖</div>
-          <h3>Библиотека</h3>
-          <p>Заказ книг и учебников</p>
+          <div class="service-icon">❓</div>
+          <h3>Вопросы</h3>
+          <p>Задать вопрос</p>
         </div>
         <div class="service-card" data-service="documents">
           <div class="service-icon">📄</div>
@@ -420,7 +420,6 @@ reinitializeApp() {
   if (typeof renderClubs === 'function') renderClubs();
   if (typeof renderWeekSchedule === 'function') renderWeekSchedule();
   if (typeof updateWeekInfo === 'function') updateWeekInfo();
-  if (typeof updateUserInfo === 'function') updateUserInfo();
   
   if (typeof initializeSmartSearch === 'function') {
     setTimeout(() => {

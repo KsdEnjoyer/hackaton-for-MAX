@@ -1,5 +1,3 @@
-// === mock data для разработки ===
-
 const mockData = {
 
    universities: [

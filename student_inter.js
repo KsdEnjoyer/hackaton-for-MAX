@@ -8,11 +8,9 @@ let availableTags = [
     "медитация", "психология", "литература", "поэзия", "дебаты"
 ];
 
-// Глобальные переменные для планировщика
 let currentPlannerDate = new Date();
 let userEvents = [];
 
-// Инициализация планировщика
 function initializePlanner() {
     loadUserEvents();
     setupViewSwitcher();
@@ -20,7 +18,6 @@ function initializePlanner() {
     renderMonthlyCalendar();
 }
 
-// Загрузка событий пользователя
 function loadUserEvents() {
     try {
         const savedEvents = localStorage.getItem(`userEvents_${authService.currentUser.uid}`);
@@ -33,7 +30,6 @@ function loadUserEvents() {
     }
 }
 
-// Сохранение событий пользователя
 function saveUserEvents() {
     try {
         localStorage.setItem(`userEvents_${authService.currentUser.uid}`, JSON.stringify(userEvents));
@@ -42,7 +38,6 @@ function saveUserEvents() {
     }
 }
 
-// Переключение между видами
 function setupViewSwitcher() {
     const viewButtons = document.querySelectorAll('.view-btn');
     const weekView = document.getElementById('week-view');
@@ -54,11 +49,9 @@ function setupViewSwitcher() {
         btn.addEventListener('click', function() {
             const view = this.dataset.view;
             
-            // Обновляем активные кнопки
             viewButtons.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             
-            // Переключаем виды
             if (view === 'week') {
                 weekView.classList.remove('hidden');
                 monthView.classList.add('hidden');
@@ -76,7 +69,6 @@ function setupViewSwitcher() {
 }
 
 
-// Навигация по месяцам
 function setupMonthNavigation() {
     const prevBtn = document.getElementById('prev-month');
     const nextBtn = document.getElementById('next-month');
@@ -101,7 +93,6 @@ function setupMonthNavigation() {
     }
 }
 
-// Рендер месячного календаря
 function renderMonthlyCalendar() {
     const calendar = document.getElementById('monthly-calendar');
     if (!calendar) return;
@@ -109,12 +100,10 @@ function renderMonthlyCalendar() {
     const year = currentPlannerDate.getFullYear();
     const month = currentPlannerDate.getMonth();
     
-    // Обновляем заголовок
     const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
                        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
     document.getElementById('current-month').textContent = `${monthNames[month]} ${year}`;
 
-    // Создаем календарь
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const startDate = new Date(firstDay);
@@ -140,7 +129,6 @@ function renderMonthlyCalendar() {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
 
-    // Заполняем календарь днями
     let date = new Date(startDate);
     while (date <= endDate) {
         const dayElement = document.createElement('div');
@@ -152,7 +140,6 @@ function renderMonthlyCalendar() {
         if (isOtherMonth) dayElement.classList.add('other-month');
         if (isToday) dayElement.classList.add('today');
 
-        // Получаем события для этого дня
         const dayEvents = getEventsForDate(date);
         if (dayEvents.length > 0) {
             dayElement.classList.add('has-events');
@@ -172,7 +159,6 @@ function renderMonthlyCalendar() {
             </div>
         `;
 
-        // Добавляем обработчик клика для создания событий
         dayElement.addEventListener('click', (e) => {
             if (!e.target.classList.contains('calendar-event')) {
                 openAddEventModal(date);
@@ -185,7 +171,6 @@ function renderMonthlyCalendar() {
     }
 }
 
-// Получение событий для конкретной даты
 function getEventsForDate(date) {
     const dateString = date.toISOString().split('T')[0];
     return userEvents.filter(event => 
@@ -194,7 +179,6 @@ function getEventsForDate(date) {
     );
 }
 
-// Модальное окно добавления события
 function openAddEventModal(prefilledDate = null) {
     const modal = document.createElement('div');
     modal.className = 'service-modal active';
@@ -686,7 +670,7 @@ function formatDate(dateString) {
         
         if (isNaN(date.getTime())) {
             console.warn('Невалидная дата:', dateString);
-            return dateString; // Возвращаем оригинальную строку для отладки
+            return dateString; 
         }
         
         const today = new Date();
@@ -1457,8 +1441,7 @@ function handleServiceClick(event) {
     closeAllServiceModals();
     switch(service) {
         case 'library':
-            showServiceModal('📚 Библиотека', 
-                'Данный сервис пока не реализован, но мы займемся этим позже, но вы не расстраивайтесь, посмотрите на остальные сервисы, они хороши, поверьте мне )');
+            openQuestionService(); 
             break;
             
         case 'documents':
@@ -1481,6 +1464,166 @@ function handleServiceClick(event) {
             showEventsCalendar();
             break;
     }
+}
+
+
+function openQuestionService() {
+    const modal = document.createElement('div');
+    modal.className = 'service-modal active';
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>❓ Задать вопрос</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="service-description">
+                    <p>Задайте вопрос администрации университета или получите консультацию</p>
+                </div>
+                
+                <form id="question-form" class="question-form">
+                    <div class="form-group">
+                        <label>Тип вопроса *</label>
+                        <select id="question-type" class="form-select" required>
+                            <option value="">Выберите тип вопроса</option>
+                            <option value="academic">Учебный процесс</option>
+                            <option value="documents">Документы</option>
+                            <option value="dormitory">Общежитие</option>
+                            <option value="scholarship">Стипендия</option>
+                            <option value="schedule">Расписание</option>
+                            <option value="other">Другое</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Тема вопроса *</label>
+                        <input type="text" id="question-title" class="form-input" placeholder="Кратко опишите тему вопроса" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Подробное описание *</label>
+                        <textarea id="question-description" class="form-textarea" placeholder="Опишите ваш вопрос подробно..." rows="5" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Приоритет</label>
+                        <select id="question-priority" class="form-select">
+                            <option value="low">Низкий</option>
+                            <option value="medium" selected>Средний</option>
+                            <option value="high">Высокий</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Контакт для ответа *</label>
+                        <input type="text" id="question-contact" class="form-input" placeholder="Email или телефон для связи" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Прикрепить файлы (необязательно)</label>
+                        <input type="file" id="question-files" class="form-input" multiple>
+                        <small>Можно прикрепить до 3 файлов (PDF, JPG, PNG)</small>
+                    </div>
+                </form>
+                
+                <div class="service-actions">
+                    <button type="button" class="btn-secondary">Отмена</button>
+                    <button type="button" id="submit-question" class="btn-primary">Отправить вопрос</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    setupQuestionHandlers(modal);
+}
+
+function setupQuestionHandlers(modal) {
+    const submitBtn = modal.querySelector('#submit-question');
+    const form = modal.querySelector('#question-form');
+    
+    submitBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        handleQuestionSubmission(modal);
+    });
+    
+    setupModalHandlers(modal);
+}
+
+
+function handleQuestionSubmission(modal) {
+    const formData = {
+        type: modal.querySelector('#question-type').value,
+        title: modal.querySelector('#question-title').value.trim(),
+        description: modal.querySelector('#question-description').value.trim(),
+        priority: modal.querySelector('#question-priority').value,
+        contact: modal.querySelector('#question-contact').value.trim(),
+        studentName: authService.currentUser.profile.firstName + ' ' + authService.currentUser.profile.lastName,
+        group: authService.currentUser.profile.group,
+        timestamp: new Date().toISOString(),
+        status: 'new'
+    };
+    
+    if (!formData.type || !formData.title || !formData.description || !formData.contact) {
+        alert('Пожалуйста, заполните все обязательные поля');
+        return;
+    }
+    
+    showQuestionSuccessNotification(formData, modal);
+}
+
+
+function showQuestionSuccessNotification(questionData, modal) {
+    document.body.removeChild(modal);
+    
+    const notification = document.createElement('div');
+    notification.className = 'success-notification question-success';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">✅</span>
+            <div class="notification-text">
+                <strong>Вопрос отправлен!</strong>
+                <div style="font-size: 0.9rem; margin-top: 5px; opacity: 0.9;">
+                    Тип: ${getQuestionTypeText(questionData.type)}<br>
+                    Тема: "${questionData.title}"<br>
+                    Приоритет: ${getPriorityText(questionData.priority)}<br>
+                    <em>Ответ поступит на указанные контакты</em>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+        }
+    }, 5000);
+    
+    console.log('Вопрос отправлен:', questionData);
+}
+
+function getQuestionTypeText(type) {
+    const types = {
+        'academic': 'Учебный процесс',
+        'documents': 'Документы',
+        'dormitory': 'Общежитие',
+        'scholarship': 'Стипендия',
+        'schedule': 'Расписание',
+        'other': 'Другое'
+    };
+    return types[type] || type;
+}
+
+function getPriorityText(priority) {
+    const priorities = {
+        'low': 'Низкий',
+        'medium': 'Средний',
+        'high': 'Высокий'
+    };
+    return priorities[priority] || priority;
 }
 
 function closeAllServiceModals() {
@@ -1703,7 +1846,6 @@ function handleBookingSubmission(modal, form) {
     const roomId = document.getElementById('room-select').value;
     const room = mockData.classrooms.find(r => r.id == roomId);
     
-    // Валидация
     if (!roomType || !roomId) {
         alert('Пожалуйста, выберите тип помещения и конкретную аудиторию');
         return;
