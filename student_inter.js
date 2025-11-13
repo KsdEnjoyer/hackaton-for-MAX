@@ -8,6 +8,30 @@ let availableTags = [
     "медитация", "психология", "литература", "поэзия", "дебаты"
 ];
 
+function getCurrentAcademicWeek() {
+  const today = new Date();
+  const startDate = new Date("2025-09-01"); 
+  
+  today.setHours(0, 0, 0, 0);
+  startDate.setHours(0, 0, 0, 0);
+  
+  const diffTime = today - startDate;
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const diffWeeks = Math.floor(diffDays / 7);
+  
+  const academicWeek = diffWeeks + 1;
+  
+  console.log('Вычисление учебной недели:', {
+    today: today.toDateString(),
+    startDate: startDate.toDateString(), 
+    diffDays: diffDays,
+    diffWeeks: diffWeeks,
+    academicWeek: academicWeek
+  });
+  
+  return academicWeek;
+}
+
 let currentFilters = {
     searchText: '',
     category: 'all',
@@ -16,7 +40,9 @@ let currentFilters = {
     size: 'any'
 };
 
-let currentDisplayWeek = getCurrentWeek();
+let currentDisplayWeek = getCurrentAcademicWeek(); 
+let currentDisplayDate = new Date(); 
+
 
 function initializeStudentApp() {
   console.log('Инициализация интерфейса студента...');
@@ -32,20 +58,24 @@ function forceUpdateHeader() {
     authService.updateHeader();
   }
 }
+
 function setupStudentApp() {
-  console.log('Запуск setupStudentApp...');
-  
-  setupNavigation();
-  setupServices();
-  updateWeekInfo();
-  renderTodaySchedule();
-  renderNews();
-  renderWeekSchedule();
-  renderClubs();
-  
-  setupWeekNavigation();
-  
-  console.log('setupStudentApp завершен');
+    console.log('Запуск setupStudentApp...');
+    
+    currentDisplayWeek = getCurrentAcademicWeek();
+    
+    setupNavigation();
+    setupServices();
+    renderTodaySchedule(); 
+    renderNews();
+    renderWeekSchedule(); 
+    renderClubs();
+    
+    setTimeout(() => {
+        setupWeekNavigation();
+    }, 200);
+    
+    console.log('setupStudentApp завершен. Текущая неделя:', currentDisplayWeek);
 }
 
 function setupNavigation() {
@@ -58,10 +88,18 @@ function setupNavigation() {
             tab.classList.add('active');
             const target = tab.dataset.tab;
             const content = document.getElementById(target);
-            content.classList.add('active');
+            content.classList.add('active');            
+            if (target === 'schedule') {
+                console.log('Переключились на вкладку расписания, инициализируем навигацию...');
+                setTimeout(() => {
+                    setupWeekNavigation();
+                }, 100);
+            }
         });
     });
 }
+
+
 
 function updateUserInfo() {
     const userInfo = document.querySelector('.user-info');
@@ -79,39 +117,258 @@ function updateWeekInfo() {
 }
 
 
-function renderTodaySchedule() {
-  const todayContainer = document.getElementById('today-schedule');
-  if (!todayContainer) return;
-  todayContainer.innerHTML = '';
-  const today = new Date().toISOString().split('T')[0];
-  const universitySchedule = getUniversityData('schedule');
-  const todayData = universitySchedule.find(day => day.date === today);
-
-  if (!todayData || todayData.lessons.length === 0) {
-    todayContainer.innerHTML = `
-      <div class="empty-schedule">
-        <div class="icon">🎉</div>
-        <p>На сегодня пар нет!</p>
-      </div>
-    `;
-    return;
-  }
-
-  todayData.lessons.forEach(lesson => {
-    const div = document.createElement('div');
-    div.className = `lesson ${lesson.type}`;
-    div.innerHTML = `
-      <div class="lesson-time">${lesson.time}</div>
-      <div class="lesson-subject">${lesson.subject}</div>
-      <div class="lesson-details">
-        <span>${lesson.teacher}</span>
-        <span>${lesson.room}</span>
-      </div>
-    `;
-    todayContainer.appendChild(div);
-  });
+function isWeekend(dayOfWeek) {
+  return dayOfWeek === 0 || dayOfWeek === 6; 
 }
 
+const HOLIDAYS = {
+  '01-01': 'Новый год',
+  '01-07': 'Рождество',
+  '02-23': 'День защитника Отечества',
+  '03-08': 'Международный женский день',
+  '05-01': 'Праздник весны и труда',
+  '05-09': 'День Победы',
+  '06-12': 'День России',
+  '11-04': 'День народного единства'
+};
+
+function isHoliday(date) {
+  const monthDay = `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  return HOLIDAYS.hasOwnProperty(monthDay);
+}
+
+function getHolidayName(date) {
+  const monthDay = `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  return HOLIDAYS[monthDay] || 'Праздничный день';
+}
+
+function getWeekDates(weekOffset = 0) {
+    const startDate = new Date("2025-09-01");
+    
+    const monday = new Date(startDate);
+    monday.setDate(startDate.getDate() + ((currentDisplayWeek - 1) * 7)); 
+    
+    const dayOfWeek = monday.getDay();
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    monday.setDate(monday.getDate() + diffToMonday);
+    
+    const weekDates = [];
+    
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        
+        weekDates.push({
+            dateString: `${year}-${month}-${day}`,
+            date: new Date(date),
+            dayOfWeek: date.getDay(),
+            russianDayName: getRussianDayName(date.getDay())
+        });
+    }
+    
+    console.log('Даты для недели', currentDisplayWeek, ':', weekDates.map(d => d.dateString));
+    return weekDates;
+}
+
+
+function getScheduleForWeek() {
+    const universityId = authService.currentUniversity?.id;
+    if (!universityId) return [];
+    
+    const baseSchedule = getUniversityData('schedule');
+    const weekDates = getWeekDates();
+    
+    return weekDates.map(weekDay => {
+        const daySchedule = baseSchedule.find(day => day.day === weekDay.russianDayName);
+        
+        if (daySchedule) {
+            return {
+                ...daySchedule,
+                date: weekDay.dateString,
+                dateObj: weekDay.date,
+                dayOfWeek: weekDay.dayOfWeek
+            };
+        }
+        
+        return {
+            university_id: universityId,
+            day: weekDay.russianDayName,
+            date: weekDay.dateString,
+            dateObj: weekDay.date,
+            dayOfWeek: weekDay.dayOfWeek,
+            lessons: []
+        };
+    });
+}
+
+
+
+function getRussianDayName(dayIndex) {
+    const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+    return days[dayIndex];
+}
+
+function renderWeekSchedule() {
+    const grid = document.getElementById('schedule-grid');
+    if (!grid) return;
+
+    if (!grid.classList.contains('schedule-grid')) {
+        grid.classList.add('schedule-grid');
+    }
+
+    grid.innerHTML = '';
+
+    const weekSchedule = getScheduleForWeek();
+    
+    console.log('Рендерим расписание для учебной недели:', currentDisplayWeek);
+
+    weekSchedule.forEach((dayData, index) => {
+        const date = new Date(dayData.date);
+        const dayOfWeek = date.getDay();
+        
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'schedule-card';
+        dayDiv.style.animationDelay = `${index * 0.1}s`;
+        
+        let dayIcon = '📅';
+        let dayStatus = '';
+        
+        if (isWeekend(dayOfWeek)) {
+            dayIcon = '🥰';
+            dayStatus = 'Выходной';
+        } else if (isHoliday(date)) {
+            dayIcon = '🎉';
+            dayStatus = getHolidayName(date);
+        }
+        
+        const formattedDate = formatDate(dayData.date);
+        
+        dayDiv.innerHTML = `
+            <div class="day-header">
+                <h3>${dayIcon} ${dayData.day}</h3>
+                <small>${formattedDate}</small>
+                ${dayStatus ? `<div class="day-status">${dayStatus}</div>` : ''}
+            </div>
+        `;
+
+        if (dayData.lessons && dayData.lessons.length > 0 && !isWeekend(dayOfWeek) && !isHoliday(date)) {
+            dayData.lessons.forEach(lesson => {
+                const lessonEl = document.createElement('div');
+                lessonEl.className = `lesson ${lesson.type}`;
+                lessonEl.innerHTML = `
+                    <div class="lesson-time">${lesson.time}</div>
+                    <div class="lesson-subject">${lesson.subject}</div>
+                    <div class="lesson-details">
+                        <span>${lesson.teacher}</span>
+                        <span>${lesson.room}</span>
+                    </div>
+                `;
+                dayDiv.appendChild(lessonEl);
+            });
+        } else {
+            const status = isHoliday(date) ? '🎉 Праздник' : 
+                          (isWeekend(dayOfWeek) ? '🥰 Выходной' : '📚 Нет занятий');
+            dayDiv.innerHTML += `<div class="empty-day">${status}</div>`;
+        }
+
+        grid.appendChild(dayDiv);
+    });
+}
+
+function renderTodaySchedule() {
+    const todayContainer = document.getElementById('today-schedule');
+    if (!todayContainer) return;
+
+    todayContainer.innerHTML = '';
+
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const dayName = getRussianDayName(dayOfWeek);
+    
+    console.log('Сегодня:', dayName, 'День недели:', dayOfWeek);
+    
+    const universitySchedule = getUniversityData('schedule');
+    const todaySchedule = universitySchedule.find(day => day.day === dayName);
+
+    if (isWeekend(dayOfWeek) || isHoliday(today)) {
+        todayContainer.innerHTML = `
+            <div class="empty-schedule">
+                <div class="icon">🎉</div>
+                <h3>${isHoliday(today) ? '🎉 Праздничный день!' : '🥰 Выходной!'}</h3>
+                <p>${isHoliday(today) ? getHolidayName(today) : 'Сегодня можно отдохнуть'}</p>
+            </div>
+        `;
+        return;
+    }
+
+    if (!todaySchedule || !todaySchedule.lessons || todaySchedule.lessons.length === 0) {
+        todayContainer.innerHTML = `
+            <div class="empty-schedule">
+                <div class="icon">📚</div>
+                <h3>На сегодня пар нет!</h3>
+                <p>Можно заняться самообразованием</p>
+            </div>
+        `;
+        return;
+    }
+
+    todaySchedule.lessons.forEach(lesson => {
+        const div = document.createElement('div');
+        div.className = `lesson ${lesson.type}`;
+        div.innerHTML = `
+            <div class="lesson-time">${lesson.time}</div>
+            <div class="lesson-subject">${lesson.subject}</div>
+            <div class="lesson-details">
+                <span>${lesson.teacher}</span>
+                <span>${lesson.room}</span>
+            </div>
+        `;
+        todayContainer.appendChild(div);
+    });
+}
+
+function getDayName(dayOfWeek) {
+  const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+  return days[dayOfWeek];
+}
+
+function formatDate(dateString) {
+    try {
+        const date = new Date(dateString);
+        
+        if (isNaN(date.getTime())) {
+            console.warn('Невалидная дата:', dateString);
+            return dateString; // Возвращаем оригинальную строку для отладки
+        }
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        
+        const compareDate = new Date(date);
+        compareDate.setHours(0, 0, 0, 0);
+        
+        if (compareDate.getTime() === today.getTime()) {
+            return 'Сегодня';
+        } else if (compareDate.getTime() === tomorrow.getTime()) {
+            return 'Завтра';
+        } else {
+            return date.toLocaleDateString('ru-RU', { 
+                day: 'numeric', 
+                month: 'long' 
+            });
+        }
+    } catch (error) {
+        console.error('Ошибка форматирования даты:', error, dateString);
+        return dateString;
+    }
+}
 
 
 let newsAlreadyRendered = false;
@@ -140,7 +397,7 @@ function renderNews() {
   newsList.appendChild(newsHeader);
 
   const universityNews = getUniversityData('news');
-  console.log('📰 Найдено новостей для университета:', universityNews.length);
+  console.log('Найдено новостей для университета:', universityNews.length);
 
   if (universityNews.length === 0) {
     const emptyNews = document.createElement('div');
@@ -333,7 +590,7 @@ function saveNewsToLocalStorage() {
 }
 
 function deleteNews(newsId) {
-  console.log('🗑️ Попытка удаления новости:', newsId);
+  console.log('Попытка удаления новости:', newsId);
   
   const news = mockData.news.find(n => n.id === newsId);
   if (!news) {
@@ -810,44 +1067,6 @@ function deleteNews(newsId) {
   }
 }
 
-function renderWeekSchedule() {
-  const grid = document.getElementById('schedule-grid');
-  if (!grid) return;
-
-  grid.innerHTML = '';
-
-  const universitySchedule = getUniversityData('schedule');
-
-  universitySchedule.forEach(dayData => {
-    const dayDiv = document.createElement('div');
-    dayDiv.className = 'schedule-card';
-    
-    dayDiv.innerHTML = `
-      <h3>${dayData.day}</h3>
-      <small>${formatDate(dayData.date)}</small>
-    `;
-
-    if (dayData.lessons.length > 0) {
-      dayData.lessons.forEach(lesson => {
-        const lessonEl = document.createElement('div');
-        lessonEl.className = `lesson ${lesson.type}`;
-        lessonEl.innerHTML = `
-          <div class="lesson-time">${lesson.time}</div>
-          <div class="lesson-subject">${lesson.subject}</div>
-          <div class="lesson-details">
-            <span>${lesson.teacher}</span>
-            <span>${lesson.room}</span>
-          </div>
-        `;
-        dayDiv.appendChild(lessonEl);
-      });
-    } else {
-      dayDiv.innerHTML += `<div class="empty-day">Нет занятий</div>`;
-    }
-
-    grid.appendChild(dayDiv);
-  });
-}
 
 function showNewsSuccessNotification(newsData) {
   const notification = document.createElement('div');
@@ -889,8 +1108,8 @@ function setupServices() {
 function handleServiceClick(event) {
     const card = event.currentTarget;
     const service = card.getAttribute('data-service');
-    
-    console.log('🎯 Клик по сервису:', service);
+
+    console.log('Клик по сервису:', service);
     closeAllServiceModals();
     switch(service) {
         case 'library':
@@ -1263,13 +1482,13 @@ function showEventsCalendar() {
 function renderEventsFromDatabase(filter = 'all', events = null) {
     const eventsList = document.getElementById('events-list');
     if (!eventsList) {
-        console.log('❌ Контейнер мероприятий не найден');
+        console.log('Контейнер мероприятий не найден');
         return;
     }
     
     const universityEvents = events || getUniversityData('events');
     
-    console.log('🎯 Рендерим мероприятия. Фильтр:', filter, 'Количество:', universityEvents.length);
+    console.log('Рендерим мероприятия. Фильтр:', filter, 'Количество:', universityEvents.length);
 
     const filteredEvents = filter === 'all' 
         ? universityEvents 
@@ -1378,7 +1597,7 @@ function setupEventsFilterHandlers(modal) {
 function setupEventRegistrationHandlers() {
     const registerButtons = document.querySelectorAll('.event-register-btn:not(.registered):not(:disabled)');
     
-    console.log('🎯 Найдено кнопок записи:', registerButtons.length);
+    console.log(' Найдено кнопок записи:', registerButtons.length);
     
     registerButtons.forEach(btn => {
         btn.replaceWith(btn.cloneNode(true));
@@ -1387,7 +1606,7 @@ function setupEventRegistrationHandlers() {
     document.querySelectorAll('.event-register-btn:not(.registered):not(:disabled)').forEach(btn => {
         btn.addEventListener('click', function() {
             const eventId = parseInt(this.getAttribute('data-event-id'));
-            console.log('🎯 Клик по записи на мероприятие:', eventId);
+            console.log('Клик по записи на мероприятие:', eventId);
             
             const event = mockData.events.find(e => e.id === eventId);
             
@@ -1424,7 +1643,7 @@ function registerUserForEvent(eventId, button) {
     btnIcon.textContent = '⏳';
     button.classList.add('registering');
     
-    console.log('🎯 Начинаем запись пользователя', authService.currentUser.id, 'на мероприятие', eventId);
+    console.log('Начинаем запись пользователя', authService.currentUser.id, 'на мероприятие', eventId);
     
     setTimeout(() => {
         if (!event.registeredUsers) {
@@ -1589,7 +1808,7 @@ function loadEventsFromLocalStorage() {
 }
 
 function openCreateClubModal() {
-    console.log('🎯 Открытие модалки создания клуба...');
+    console.log('Открытие модалки создания клуба...');
     
     closeAllServiceModals();
     
@@ -1880,19 +2099,19 @@ function initializeEmojiPicker() {
 }
 
 function setupClubModalHandlers() {
-    console.log('🎯 Настройка обработчиков модалки...');
+    console.log('Tастройка обработчиков модалки...');
     const modal = document.getElementById('create-club-modal');
     const closeBtn = modal.querySelector('.close-modal');
     const cancelBtn = modal.querySelector('.cancel-btn');
     const form = document.getElementById('create-club-form');
     
     if (!closeBtn || !cancelBtn || !form) {
-        console.error('❌ Элементы модалки не найдены!');
+        console.error('Элементы модалки не найдены!');
         return;
     }
     
     function closeModal() {
-        console.log('🔒 Закрытие модалки...');
+        console.log('Закрытие модалки...');
         modal.classList.add('hidden');
         form.reset();
         clubFormSelectedTags = [];
@@ -2103,7 +2322,7 @@ function renderFilteredClubs(clubs) {
     club.university_id === authService.currentUniversity?.id
   );
 
-  console.log('🎯 Клубы после фильтрации по университету:', universityClubs.length);
+  console.log('Клубы после фильтрации по университету:', universityClubs.length);
 
   if (universityClubs.length === 0) {
     container.innerHTML = '';
@@ -2208,31 +2427,158 @@ function setupModalHandlers(modal) {
 }
 
 function setupWeekNavigation() {
-    const currentWeekLabel = document.getElementById('current-week');
-    const prevBtn = document.getElementById('prev-week');
-    const nextBtn = document.getElementById('next-week');
+    const scheduleSection = document.getElementById('schedule');
+    const prevBtn = scheduleSection ? scheduleSection.querySelector('#prev-week') : null;
+    const nextBtn = scheduleSection ? scheduleSection.querySelector('#next-week') : null;
+    const currentWeekLabel = scheduleSection ? scheduleSection.querySelector('#current-week') : null;
 
-    if (prevBtn && nextBtn) {
-        prevBtn.addEventListener('click', () => {
+    console.log('=== НАВИГАЦИЯ ПО НЕДЕЛЯМ ===');
+    console.log('Текущая учебная неделя:', currentDisplayWeek);
+
+    if (prevBtn && nextBtn && currentWeekLabel) {
+        updateWeekDisplay();
+        
+        prevBtn.replaceWith(prevBtn.cloneNode(true));
+        nextBtn.replaceWith(nextBtn.cloneNode(true));
+        
+        const newPrevBtn = scheduleSection.querySelector('#prev-week');
+        const newNextBtn = scheduleSection.querySelector('#next-week');
+        
+        newPrevBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            console.log('⬅️ Предыдущая неделя. Было:', currentDisplayWeek);
             if (currentDisplayWeek > 1) {
-                currentDisplayWeek--;
-                updateWeekDisplay();
-                renderWeekSchedule();
+                await animateWeekTransition('left', () => {
+                    currentDisplayWeek--;
+                    console.log('Стало:', currentDisplayWeek);
+                    updateWeekDisplay();
+                    renderWeekSchedule();
+                });
+            } else {
+                console.log('Достигнута первая неделя');
+                showNotification('Это первая учебная неделя', 'info');
+                shakeButton(newPrevBtn);
             }
         });
 
-        nextBtn.addEventListener('click', () => {
-            currentDisplayWeek++;
-            updateWeekDisplay();
-            renderWeekSchedule();
+        newNextBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            console.log('➡️ Следующая неделя. Было:', currentDisplayWeek);
+            
+            if (currentDisplayWeek < 52) {
+                await animateWeekTransition('right', () => {
+                    currentDisplayWeek++;
+                    console.log('Стало:', currentDisplayWeek);
+                    updateWeekDisplay();
+                    renderWeekSchedule();
+                });
+            } else {
+                console.log('Достигнута последняя неделя учебного года');
+                showNotification('Это последняя учебная неделя', 'info');
+                shakeButton(newNextBtn);
+            }
         });
+        
+        console.log('Навигация инициализирована. Текущая неделя:', currentDisplayWeek);
     }
 }
 
+function disableWeekNavigation(disabled) {
+    const prevBtn = document.querySelector('#prev-week');
+    const nextBtn = document.querySelector('#next-week');
+    
+    if (prevBtn && nextBtn) {
+        if (disabled) {
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+            prevBtn.style.opacity = '0.5';
+            nextBtn.style.opacity = '0.5';
+            prevBtn.style.cursor = 'not-allowed';
+            nextBtn.style.cursor = 'not-allowed';
+        } else {
+            prevBtn.disabled = false;
+            nextBtn.disabled = false;
+            prevBtn.style.opacity = '1';
+            nextBtn.style.opacity = '1';
+            prevBtn.style.cursor = 'pointer';
+            nextBtn.style.cursor = 'pointer';
+        }
+    }
+}
+
+async function animateWeekTransition(direction, callback) {
+    const grid = document.getElementById('schedule-grid');
+    if (!grid) {
+        callback();
+        return;
+    }
+
+    if (!grid.classList.contains('schedule-grid')) {
+        grid.classList.add('schedule-grid');
+    }
+
+    disableWeekNavigation(true);
+
+    grid.classList.add(`slide-out-${direction}`);
+    
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    callback();
+    
+    grid.classList.remove(`slide-out-${direction}`);
+    grid.classList.add(`slide-in-${direction}`);
+    
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    grid.classList.remove(`slide-in-${direction}`);
+    
+    disableWeekNavigation(false);
+}
+
 function updateWeekDisplay() {
-    const currentWeekLabel = document.getElementById('current-week');
+    const scheduleSection = document.getElementById('schedule');
+    const currentWeekLabel = scheduleSection ? scheduleSection.querySelector('#current-week') : null;
+    
     if (currentWeekLabel) {
-        currentWeekLabel.textContent = `Неделя ${currentDisplayWeek}`;
+        if (!currentWeekLabel.classList.contains('current-week-display')) {
+            currentWeekLabel.classList.add('current-week-display');
+        }
+        
+        currentWeekLabel.classList.add('week-changing');
+        
+        setTimeout(() => {
+            currentWeekLabel.textContent = `Учебная неделя ${currentDisplayWeek}`;
+            setTimeout(() => {
+                currentWeekLabel.classList.remove('week-changing');
+            }, 150);
+        }, 150);
+        
+        console.log('Обновлена надпись недели:', currentDisplayWeek);
+    }
+}
+
+function shakeButton(button) {
+    button.classList.add('shake');
+    setTimeout(() => {
+        button.classList.remove('shake');
+    }, 500);
+}
+
+
+function formatWeekRange(startDate, endDate) {
+    const start = startDate.toLocaleDateString('ru-RU', { 
+        day: 'numeric', 
+        month: 'short' 
+    });
+    const end = endDate.toLocaleDateString('ru-RU', { 
+        day: 'numeric', 
+        month: 'short' 
+    });
+    
+    if (startDate.getMonth() === endDate.getMonth()) {
+        return `${startDate.getDate()} - ${endDate.getDate()} ${startDate.toLocaleDateString('ru-RU', { month: 'long' })}`;
+    } else {
+        return `${start} - ${end}`;
     }
 }
 
@@ -2240,13 +2586,6 @@ document.getElementById('month-view')?.addEventListener('click', () => {
     alert("📆 Месячный вид в разработке! Скоро будет доступен.");
 });
 
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', { 
-        day: 'numeric', 
-        month: 'long' 
-    });
-}
 
 function openDocumentsService() {
     const modal = document.createElement('div');
