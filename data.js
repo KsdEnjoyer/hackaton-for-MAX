@@ -239,87 +239,87 @@ staff: [
     }
   ],
 
-   schedule: [
-        // Университет 1 - Университет имени Куарта
-        {
-            university_id: 1,
-            day: "Понедельник",
-            lessons: [
-                { time: "9:00-10:30", subject: "Высшая математика", type: "lecture", room: "101", teacher: "Проф. Иванов" },
-                { time: "10:45-12:15", subject: "Программирование", type: "practice", room: "203", teacher: "Доц. Петрова" },
-                { time: "13:00-14:30", subject: "Физика", type: "lab", room: "305", teacher: "Проф. Сидоров" }
-            ]
-        },
-        {
-            university_id: 1,
-            day: "Вторник",
-            lessons: [
-                { time: "9:00-10:30", subject: "Иностранный язык", type: "practice", room: "415", teacher: "Доц. Козлова" },
-                { time: "12:00-13:30", subject: "Дискретная математика", type: "lecture", room: "102", teacher: "Проф. Никитин" }
-            ]
-        },
-        {
-            university_id: 1,
-            day: "Среда",
-            lessons: [
-                { time: "10:45-12:15", subject: "Базы данных", type: "lab", room: "310", teacher: "Доц. Смирнов" },
-                { time: "14:00-15:30", subject: "Веб-разработка", type: "practice", room: "205", teacher: "Ст. преп. Васильев" }
-            ]
-        },
-        {
-            university_id: 1,
-            day: "Четверг",
-            lessons: [
-                { time: "9:00-11:15", subject: "Операционные системы", type: "lecture", room: "103", teacher: "Проф. Федоров" },
-                { time: "11:30-13:00", subject: "Алгоритмы", type: "practice", room: "210", teacher: "Доц. Орлова" }
-            ]
-        },
-        {
-            university_id: 1,
-            day: "Пятница",
-            lessons: [
-                { time: "9:00-10:30", subject: "Компьютерные сети", type: "lab", room: "315", teacher: "Доц. Павлов" },
-                { time: "12:00-13:30", subject: "Теория вероятностей", type: "lecture", room: "104", teacher: "Проф. Кудрявцева" }
-            ]
-        },
-        {
-            university_id: 1,
-            day: "Суббота",
-            lessons: [
-                { time: "10:00-11:30", subject: "Физкультура", type: "practice", room: "Спортзал", teacher: "Преп. Михайлов" }
-            ]
-        },
+    schedule: [
+          // Университет 1 - Университет имени Куарта
+          {
+              university_id: 1,
+              day: "Понедельник",
+              lessons: [
+                  { time: "9:00-10:30", subject: "Высшая математика", type: "lecture", room: "101", teacher: "Проф. Иванов" },
+                  { time: "10:45-12:15", subject: "Программирование", type: "practice", room: "203", teacher: "Доц. Петрова" },
+                  { time: "13:00-14:30", subject: "Физика", type: "lab", room: "305", teacher: "Проф. Сидоров" }
+              ]
+          },
+          {
+              university_id: 1,
+              day: "Вторник",
+              lessons: [
+                  { time: "9:00-10:30", subject: "Иностранный язык", type: "practice", room: "415", teacher: "Доц. Козлова" },
+                  { time: "12:00-13:30", subject: "Дискретная математика", type: "lecture", room: "102", teacher: "Проф. Никитин" }
+              ]
+          },
+          {
+              university_id: 1,
+              day: "Среда",
+              lessons: [
+                  { time: "10:45-12:15", subject: "Базы данных", type: "lab", room: "310", teacher: "Доц. Смирнов" },
+                  { time: "14:00-15:30", subject: "Веб-разработка", type: "practice", room: "205", teacher: "Ст. преп. Васильев" }
+              ]
+          },
+          {
+              university_id: 1,
+              day: "Четверг",
+              lessons: [
+                  { time: "9:00-11:15", subject: "Операционные системы", type: "lecture", room: "103", teacher: "Проф. Федоров" },
+                  { time: "11:30-13:00", subject: "Алгоритмы", type: "practice", room: "210", teacher: "Доц. Орлова" }
+              ]
+          },
+          {
+              university_id: 1,
+              day: "Пятница",
+              lessons: [
+                  { time: "9:00-10:30", subject: "Компьютерные сети", type: "lab", room: "315", teacher: "Доц. Павлов" },
+                  { time: "12:00-13:30", subject: "Теория вероятностей", type: "lecture", room: "104", teacher: "Проф. Кудрявцева" }
+              ]
+          },
+          {
+              university_id: 1,
+              day: "Суббота",
+              lessons: [
+                  { time: "10:00-11:30", subject: "Физкультура", type: "practice", room: "Спортзал", teacher: "Преп. Михайлов" }
+              ]
+          },
 
-        // Университет 2 - Магический политех
-        {
-            university_id: 2,
-            day: "Понедельник",
-            lessons: [
-                { time: "9:00-10:30", subject: "Основы проклятий", type: "lecture", room: "Додзё-1", teacher: "Годжо Сатору" },
-                { time: "11:00-13:00", subject: "Физическая подготовка", type: "practice", room: "Тренировочный зал", teacher: "Дзэнин Маки" },
-                { time: "14:00-16:00", subject: "Техники энергетических ударов", type: "lab", room: "Полигон-А", teacher: "Нанами Кэнт" }
-            ]
-        },
-        {
-            university_id: 2,
-            day: "Вторник",
-            lessons: [
-                { time: "10:00-12:00", subject: "Расширенные техники доменов", type: "lecture", room: "Теория-3", teacher: "Годжо Сатору" },
-                { time: "13:00-15:00", subject: "Боевые искусства", type: "practice", room: "Додзё-2", teacher: "Аои Тодо" }
-            ]
-        },
-        {
-            university_id: 2,
-            day: "Среда",
-            lessons: [
-                { time: "9:00-11:00", subject: "Шикигами-контроль", type: "lab", room: "Сумрачный лес", teacher: "Мегуми Фусигуро" },
-                { time: "12:00-14:00", subject: "Тактика против особых проклятий", type: "seminar", room: "Комната-404", teacher: "Кугисаки Нобара" }
-            ]
-        },
-        {
-            university_id: 2,
-            day: "Четверг",
-            lessons: [
+          // Университет 2 - Магический политех
+          {
+              university_id: 2,
+              day: "Понедельник",
+              lessons: [
+                  { time: "9:00-10:30", subject: "Основы проклятий", type: "lecture", room: "Додзё-1", teacher: "Годжо Сатору" },
+                  { time: "11:00-13:00", subject: "Физическая подготовка", type: "practice", room: "Тренировочный зал", teacher: "Дзэнин Маки" },
+                  { time: "14:00-16:00", subject: "Техники энергетических ударов", type: "lab", room: "Полигон-А", teacher: "Нанами Кэнт" }
+              ]
+          },
+          {
+              university_id: 2,
+              day: "Вторник",
+              lessons: [
+                  { time: "10:00-12:00", subject: "Расширенные техники доменов", type: "lecture", room: "Теория-3", teacher: "Годжо Сатору" },
+                  { time: "13:00-15:00", subject: "Боевые искусства", type: "practice", room: "Додзё-2", teacher: "Аои Тодо" }
+              ]
+          },
+          {
+              university_id: 2,
+              day: "Среда",
+              lessons: [
+                  { time: "9:00-11:00", subject: "Шикигами-контроль", type: "lab", room: "Сумрачный лес", teacher: "Мегуми Фусигуро" },
+                  { time: "12:00-14:00", subject: "Тактика против особых проклятий", type: "seminar", room: "Комната-404", teacher: "Кугисаки Нобара" }
+              ]
+          },
+          {
+              university_id: 2,
+              day: "Четверг",
+              lessons: [
                 { time: "9:00-18:00", subject: "Изгнание проклятий", type: "practice", room: "Сумрачный лес", teacher: "Мегуми Фусигуро" }
             ]
         },

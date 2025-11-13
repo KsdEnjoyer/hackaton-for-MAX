@@ -8,6 +8,350 @@ let availableTags = [
     "медитация", "психология", "литература", "поэзия", "дебаты"
 ];
 
+// Глобальные переменные для планировщика
+let currentPlannerDate = new Date();
+let userEvents = [];
+
+// Инициализация планировщика
+function initializePlanner() {
+    loadUserEvents();
+    setupViewSwitcher();
+    setupMonthNavigation();
+    renderMonthlyCalendar();
+}
+
+// Загрузка событий пользователя
+function loadUserEvents() {
+    try {
+        const savedEvents = localStorage.getItem(`userEvents_${authService.currentUser.uid}`);
+        if (savedEvents) {
+            userEvents = JSON.parse(savedEvents);
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки событий:', error);
+        userEvents = [];
+    }
+}
+
+// Сохранение событий пользователя
+function saveUserEvents() {
+    try {
+        localStorage.setItem(`userEvents_${authService.currentUser.uid}`, JSON.stringify(userEvents));
+    } catch (error) {
+        console.error('Ошибка сохранения событий:', error);
+    }
+}
+
+// Переключение между видами
+function setupViewSwitcher() {
+    const viewButtons = document.querySelectorAll('.view-btn');
+    const weekView = document.getElementById('week-view');
+    const monthView = document.getElementById('month-planner-view');
+    const weekNav = document.getElementById('week-navigation');
+    const monthNav = document.getElementById('month-navigation');
+
+    viewButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+            
+            // Обновляем активные кнопки
+            viewButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Переключаем виды
+            if (view === 'week') {
+                weekView.classList.remove('hidden');
+                monthView.classList.add('hidden');
+                weekNav.classList.remove('hidden');
+                monthNav.classList.add('hidden');
+            } else {
+                weekView.classList.add('hidden');
+                monthView.classList.remove('hidden');
+                weekNav.classList.add('hidden');
+                monthNav.classList.remove('hidden');
+                renderMonthlyCalendar();
+            }
+        });
+    });
+}
+
+
+// Навигация по месяцам
+function setupMonthNavigation() {
+    const prevBtn = document.getElementById('prev-month');
+    const nextBtn = document.getElementById('next-month');
+    const addEventBtn = document.getElementById('add-event-btn');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            currentPlannerDate.setMonth(currentPlannerDate.getMonth() - 1);
+            renderMonthlyCalendar();
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            currentPlannerDate.setMonth(currentPlannerDate.getMonth() + 1);
+            renderMonthlyCalendar();
+        });
+    }
+
+    if (addEventBtn) {
+        addEventBtn.addEventListener('click', openAddEventModal);
+    }
+}
+
+// Рендер месячного календаря
+function renderMonthlyCalendar() {
+    const calendar = document.getElementById('monthly-calendar');
+    if (!calendar) return;
+
+    const year = currentPlannerDate.getFullYear();
+    const month = currentPlannerDate.getMonth();
+    
+    // Обновляем заголовок
+    const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                       'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    document.getElementById('current-month').textContent = `${monthNames[month]} ${year}`;
+
+    // Создаем календарь
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(firstDay.getDate() - firstDay.getDay() + (firstDay.getDay() === 0 ? -6 : 1));
+
+    const endDate = new Date(lastDay);
+    endDate.setDate(lastDay.getDate() + (6 - lastDay.getDay()));
+
+    calendar.innerHTML = `
+        <div class="calendar-header">
+            <div class="calendar-day-header">Пн</div>
+            <div class="calendar-day-header">Вт</div>
+            <div class="calendar-day-header">Ср</div>
+            <div class="calendar-day-header">Чт</div>
+            <div class="calendar-day-header">Пт</div>
+            <div class="calendar-day-header">Сб</div>
+            <div class="calendar-day-header">Вс</div>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+    `;
+
+    const calendarGrid = document.getElementById('calendar-grid');
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+
+    // Заполняем календарь днями
+    let date = new Date(startDate);
+    while (date <= endDate) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        
+        const isOtherMonth = date.getMonth() !== month;
+        const isToday = date.toDateString() === currentDate.toDateString();
+        
+        if (isOtherMonth) dayElement.classList.add('other-month');
+        if (isToday) dayElement.classList.add('today');
+
+        // Получаем события для этого дня
+        const dayEvents = getEventsForDate(date);
+        if (dayEvents.length > 0) {
+            dayElement.classList.add('has-events');
+        }
+
+        dayElement.innerHTML = `
+            <div class="calendar-day-number">${date.getDate()}</div>
+            <div class="calendar-events">
+                ${dayEvents.slice(0, 2).map(event => `
+                    <div class="calendar-event ${event.type}" 
+                         onclick="openEventDetails('${event.id}')"
+                         title="${event.title}">
+                        ${event.time ? event.time + ' ' : ''}${event.title}
+                    </div>
+                `).join('')}
+                ${dayEvents.length > 2 ? `<div class="calendar-event-more">+${dayEvents.length - 2} еще</div>` : ''}
+            </div>
+        `;
+
+        // Добавляем обработчик клика для создания событий
+        dayElement.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('calendar-event')) {
+                openAddEventModal(date);
+            }
+        });
+
+        calendarGrid.appendChild(dayElement);
+        
+        date.setDate(date.getDate() + 1);
+    }
+}
+
+// Получение событий для конкретной даты
+function getEventsForDate(date) {
+    const dateString = date.toISOString().split('T')[0];
+    return userEvents.filter(event => 
+        event.date === dateString && 
+        event.userId === authService.currentUser.uid
+    );
+}
+
+// Модальное окно добавления события
+function openAddEventModal(prefilledDate = null) {
+    const modal = document.createElement('div');
+    modal.className = 'service-modal active';
+    
+    const defaultDate = prefilledDate || new Date();
+    const dateString = defaultDate.toISOString().split('T')[0];
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📅 Добавить событие</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-event-form" class="event-form">
+                    <div class="form-group">
+                        <label>Название события *</label>
+                        <input type="text" id="event-title" class="form-input" placeholder="Введите название события" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Дата *</label>
+                        <input type="date" id="event-date" class="form-input" value="${dateString}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Время</label>
+                        <input type="time" id="event-time" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Тип события</label>
+                        <select id="event-type" class="form-select">
+                            <option value="personal">Личное</option>
+                            <option value="academic">Учебное</option>
+                            <option value="social">Социальное</option>
+                            <option value="work">Работа</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea id="event-description" class="form-textarea" placeholder="Описание события..." rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Цвет</label>
+                        <div class="color-picker">
+                            <input type="color" id="event-color" value="#2196f3">
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="service-actions">
+                    <button type="button" class="btn-secondary">Отмена</button>
+                    <button type="button" id="submit-event" class="btn-primary">Сохранить событие</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    setupEventModalHandlers(modal);
+}
+
+function setupEventModalHandlers(modal) {
+    const submitBtn = modal.querySelector('#submit-event');
+    const form = modal.querySelector('#add-event-form');
+    
+    submitBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        handleEventSubmission(modal);
+    });
+    
+    setupModalHandlers(modal);
+}
+
+function handleEventSubmission(modal) {
+    const formData = {
+        title: modal.querySelector('#event-title').value.trim(),
+        date: modal.querySelector('#event-date').value,
+        time: modal.querySelector('#event-time').value,
+        type: modal.querySelector('#event-type').value,
+        description: modal.querySelector('#event-description').value.trim(),
+        color: modal.querySelector('#event-color').value,
+        userId: authService.currentUser.uid,
+        id: Date.now().toString()
+    };
+    
+    if (!formData.title) {
+        alert('Пожалуйста, введите название события');
+        return;
+    }
+    
+    userEvents.push(formData);
+    saveUserEvents();
+    
+    document.body.removeChild(modal);
+    renderMonthlyCalendar();
+    
+    showNotification('✅ Событие добавлено в планировщик', 'success');
+}
+
+function openEventDetails(eventId) {
+    const event = userEvents.find(e => e.id === eventId);
+    if (!event) return;
+    
+    const modal = document.createElement('div');
+    modal.className = 'service-modal active';
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📅 ${event.title}</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="event-details">
+                    <p><strong>Дата:</strong> ${formatDate(event.date)}</p>
+                    ${event.time ? `<p><strong>Время:</strong> ${event.time}</p>` : ''}
+                    <p><strong>Тип:</strong> ${getEventTypeText(event.type)}</p>
+                    ${event.description ? `<p><strong>Описание:</strong> ${event.description}</p>` : ''}
+                </div>
+                
+                <div class="service-actions">
+                    <button type="button" class="btn-secondary" id="delete-event">Удалить</button>
+                    <button type="button" class="btn-primary" id="edit-event">Редактировать</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.querySelector('#delete-event').addEventListener('click', () => {
+        if (confirm('Удалить это событие?')) {
+            userEvents = userEvents.filter(e => e.id !== eventId);
+            saveUserEvents();
+            document.body.removeChild(modal);
+            renderMonthlyCalendar();
+            showNotification('✅ Событие удалено', 'success');
+        }
+    });
+    
+    setupModalHandlers(modal);
+}
+
+function getEventTypeText(type) {
+    const types = {
+        'personal': 'Личное',
+        'academic': 'Учебное',
+        'social': 'Социальное',
+        'work': 'Работа'
+    };
+    return types[type] || type;
+}
+
 function getCurrentAcademicWeek() {
   const today = new Date();
   const startDate = new Date("2025-09-01"); 

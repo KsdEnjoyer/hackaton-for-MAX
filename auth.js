@@ -1,4 +1,3 @@
-// auth.js - Мульти-университетская система авторизации
 class MultiUniversityAuth {
   constructor() {
     this.currentUser = null;
@@ -46,7 +45,7 @@ resetButton(button) {
   }
 
   async login(universityId, uid, password, isStaff = false) {
-    console.log('🔐 Попытка входа в университет:', universityId, 'UID:', uid, 'Тип:', isStaff ? 'сотрудник' : 'студент');
+    console.log('Попытка входа в университет:', universityId, 'UID:', uid, 'Тип:', isStaff ? 'сотрудник' : 'студент');
     
     const university = mockData.universities.find(u => u.id === universityId);
     if (!university) {
@@ -85,7 +84,7 @@ resetButton(button) {
     console.log('Успешный вход:', user.profile.firstName, 'в', university.name, 'как', isStaff ? 'сотрудник' : 'студент');
     this.showNotification('success', `Добро пожаловать в ${university.name}!`);
     
-    console.log('🔄 Переключаем интерфейс на:', isStaff ? 'staff' : 'student');
+    console.log('Переключаем интерфейс на:', isStaff ? 'staff' : 'student');
     this.switchUserInterface(isStaff ? 'staff' : 'student');
     
     return { success: true, user, university, isStaff };
@@ -97,7 +96,7 @@ resetButton(button) {
 
 logout() {
     if (this.currentUser) {
-        console.log('🚪 Выход:', this.currentUser.profile.firstName);
+        console.log('Выход:', this.currentUser.profile.firstName);
         this.showNotification('info', 'До свидания!');
     }
     
@@ -117,7 +116,7 @@ logout() {
 
 
 checkAuth() {
-  console.log('🔍 checkAuth начат');
+  console.log('checkAuth начат');
   const savedUser = localStorage.getItem('currentUser');
   const savedUniversity = localStorage.getItem('currentUniversity');
 
@@ -127,7 +126,7 @@ checkAuth() {
       this.currentUniversity = JSON.parse(savedUniversity);
       this.isAuthenticated = true;
       const userType = this.currentUser.permissions.includes('staff') ? 'staff' : 'student';
-      console.log('🔍 Автоматический вход:', this.currentUser.profile.firstName, 'как', userType);
+      console.log('Автоматический вход:', this.currentUser.profile.firstName, 'как', userType);
       this.switchUserInterface(userType);
       console.log('checkAuth возвращает:', userType);
       return userType;
@@ -145,7 +144,7 @@ checkAuth() {
 
 
 updateUI() {
-    console.log('🔄 updateUI вызван, isAuthenticated:', this.isAuthenticated);
+    console.log('updateUI вызван, isAuthenticated:', this.isAuthenticated);
     
     if (this.isAuthenticated) {
         this.removeBuildNotification();
@@ -182,7 +181,6 @@ updateHeader() {
                         ${this.currentUser.permissions.includes('teacher') ? ' | 👨‍🏫 Преподаватель' : ''}
                     </div>
                 </div>
-                <!-- КНОПКА ВЫХОДА ОСТАЕТСЯ ПОСЛЕ ВХОДА -->
                 <button id="logout-btn" class="logout-btn">
                     🚪 Выйти
                 </button>
@@ -219,12 +217,11 @@ updateActiveTabColor() {
 }
 
 updateContent() {
-  console.log('🔄 Полное обновление контента для студента');
+  console.log('Полное обновление контента для студента');
   
   const content = document.querySelector('.content');
   if (!content) return;
   content.innerHTML = `
-    <!-- Лента -->
     <section id="feed" class="tab-content active">
       <div class="schedule-card">
         <h2>📅 Сегодня</h2>
@@ -236,7 +233,6 @@ updateContent() {
       </div>
     </section>
 
-    <!-- Расписание -->
     <section id="schedule" class="tab-content">
       <div class="schedule-header">
         <button id="prev-week">←</button>
@@ -247,7 +243,6 @@ updateContent() {
       <button id="month-view" class="month-btn">📆 Месячный вид</button>
     </section>
 
-    <!-- Сервисы -->
     <section id="services" class="tab-content">
       <h2>⚙️ Сервисы университета</h2>
       <div class="services-grid">
@@ -284,7 +279,6 @@ updateContent() {
       </div>
     </section>
 
-    <!-- Клубы -->
     <section id="clubs" class="tab-content">
       <h2>🎭 Студенческие клубы ${this.currentUniversity.shortName}</h2>
       
@@ -357,13 +351,13 @@ updateContent() {
     </section>
   `;
 
-console.log('🔄 Запускаем базовые функции студента');
+console.log('Запускаем базовые функции студента');
 this.reinitializeApp();
 }
 
 
 switchUserInterface(userType) {
-  console.log('🔄 Полное переключение интерфейса на:', userType);
+  console.log('Полное переключение интерфейса на:', userType);
   const content = document.querySelector('.content');
   if (content) {
     content.innerHTML = '';
@@ -375,21 +369,21 @@ switchUserInterface(userType) {
   
   if (userType === 'staff') {
     if (tabs) {
-      console.log('📌 Скрываем панель для сотрудника');
+      console.log('Скрываем панель для сотрудника');
       tabs.classList.add('hidden');
     }
     
     if (typeof initializeStaffApp === 'function') {
-      console.log('🔄 Запускаем initializeStaffApp');
+      console.log('Запускаем initializeStaffApp');
       initializeStaffApp();
     }
   } else {
     if (tabs) {
-      console.log('📌 Показываем панель для студента');
+      console.log('Показываем панель для студента');
       tabs.classList.remove('hidden');
     }
     
-    console.log('🔄 Полная перерисовка студенческого интерфейса');
+    console.log('Полная перерисовка студенческого интерфейса');
     this.updateContent();
   }
   
@@ -397,7 +391,7 @@ switchUserInterface(userType) {
 }
 
 reinitializeApp() {
-  console.log('🔄 Переинициализация приложения...');
+  console.log('Переинициализация приложения...');
   const tabs = document.querySelector('.tabs');
   if (tabs && determineUserType() === 'student') {
     tabs.classList.remove('hidden');
@@ -419,7 +413,7 @@ reinitializeApp() {
   if (typeof renderTodaySchedule === 'function') renderTodaySchedule();
   
   if (typeof renderNews === 'function' && determineUserType() === 'student') {
-    console.log('🔄 Вызываем renderNews для студента');
+    console.log('Вызываем renderNews для студента');
     renderNews();
   }
   
@@ -438,7 +432,7 @@ reinitializeApp() {
 }
 
 showLoginScreen() {
-    console.log('🔄 showLoginScreen вызван');
+    console.log('showLoginScreen вызван');
     const tabs = document.querySelector('.tabs');
     if (tabs) {
         console.log('Панель в showLoginScreen ДО:', tabs.classList.contains('hidden'));
@@ -457,6 +451,23 @@ showLoginScreen() {
                     Начать вход
                 </button>
             </div>
+            
+            <div style="position: fixed; bottom: 40px; left: 0; right: 0; text-align: center;">
+                <a href="https://forms.gle/b8avc77sc6v1RE3V6" 
+                   target="_blank" 
+                   style="display: inline-block; 
+                          padding: 8px 12px; 
+                          background-color: #808182ff; 
+                          color: white; 
+                          text-decoration: none; 
+                          border-radius: 6px; 
+                          font-size: 12px;
+                          border: none;
+                          cursor: pointer;">
+                    Вашего университета нет? Отправьте форму на его добавление
+                </a>
+            </div>
+            
         </div>
     `;
 
@@ -502,11 +513,9 @@ showUniversitySelection() {
                         </div>
                     </div>
                     
-                    <!-- Шаг 2: Ввод данных -->
                     <div class="step" id="step-login">
                         <h4>Вход в <span id="selected-university"></span></h4>
                         <div class="university-badge" id="university-badge">
-                            <!-- Бейдж выбранного университета -->
                         </div>
                         <form class="login-form" id="university-login-form">
                             <div class="form-group">
