@@ -10,6 +10,7 @@ let availableTags = [
 
 let currentPlannerDate = new Date();
 let userEvents = [];
+let isMonthlyCalendarRendered = false;
 
 function initializePlanner() {
     loadUserEvents();
@@ -17,7 +18,6 @@ function initializePlanner() {
     setupMonthNavigation();
     renderMonthlyCalendar();
 }
-
 function loadUserEvents() {
     try {
         const savedEvents = localStorage.getItem(`userEvents_${authService.currentUser.uid}`);
@@ -62,7 +62,11 @@ function setupViewSwitcher() {
                 monthView.classList.remove('hidden');
                 weekNav.classList.add('hidden');
                 monthNav.classList.remove('hidden');
-                renderMonthlyCalendar();
+                // Убираем лишний вызов renderMonthlyCalendar()
+                if (!isMonthlyCalendarRendered) {
+                    renderMonthlyCalendar();
+                    isMonthlyCalendarRendered = true;
+                }
             }
         });
     });
@@ -77,6 +81,7 @@ function setupMonthNavigation() {
     if (prevBtn) {
         prevBtn.addEventListener('click', () => {
             currentPlannerDate.setMonth(currentPlannerDate.getMonth() - 1);
+            isMonthlyCalendarRendered = false; // Сбрасываем флаг при смене месяца
             renderMonthlyCalendar();
         });
     }
@@ -84,6 +89,7 @@ function setupMonthNavigation() {
     if (nextBtn) {
         nextBtn.addEventListener('click', () => {
             currentPlannerDate.setMonth(currentPlannerDate.getMonth() + 1);
+            isMonthlyCalendarRendered = false; // Сбрасываем флаг при смене месяца
             renderMonthlyCalendar();
         });
     }
@@ -96,6 +102,9 @@ function setupMonthNavigation() {
 function renderMonthlyCalendar() {
     const calendar = document.getElementById('monthly-calendar');
     if (!calendar) return;
+
+    // Очищаем календарь перед рендерингом
+    calendar.innerHTML = '';
 
     const year = currentPlannerDate.getFullYear();
     const month = currentPlannerDate.getMonth();
@@ -169,6 +178,8 @@ function renderMonthlyCalendar() {
         
         date.setDate(date.getDate() + 1);
     }
+
+    isMonthlyCalendarRendered = true;
 }
 
 function getEventsForDate(date) {
@@ -401,9 +412,599 @@ function setupStudentApp() {
     
     setTimeout(() => {
         setupWeekNavigation();
+        setupPlannerButton();
     }, 200);
     
     console.log('setupStudentApp завершен. Текущая неделя:', currentDisplayWeek);
+}
+
+function setupPlannerButton() {
+    const plannerBtn = document.getElementById('planner-btn');
+    if (plannerBtn) {
+        plannerBtn.addEventListener('click', openPlanner);
+        console.log('Обработчик кнопки планировщика установлен');
+    }
+}
+
+function openPlanner() {
+    console.log('Открываем планировщик...');
+    
+    const modal = document.createElement('div');
+    modal.className = 'service-modal active planner-modal-overlay';
+    
+    const currentDate = new Date();
+    const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    
+    modal.innerHTML = `
+        <div class="modal-content planner-modal-content">
+            <div class="planner-modal-header">
+                <div class="planner-header-left">
+                    <span class="planner-header-icon">📅</span>
+                    <h3>Планировщик задач</h3>
+                </div>
+                <button class="planner-close">&times;</button>
+            </div>
+            <div class="planner-modal-body">
+                <div class="planner-controls">
+                    <div class="planner-nav-group">
+                        <button class="planner-nav-btn" id="prev-month-planner">←</button>
+                    </div>
+                    <h4 id="current-month-planner">${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}</h4>
+                    <div class="planner-nav-group">
+                        <button class="planner-nav-btn" id="next-month-planner">→</button>
+                    </div>
+                </div>
+                
+                <div class="monthly-calendar-grid">
+                    <div class="calendar-weekdays">
+                        <div class="weekday-header">Пн</div>
+                        <div class="weekday-header">Вт</div>
+                        <div class="weekday-header">Ср</div>
+                        <div class="weekday-header">Чт</div>
+                        <div class="weekday-header">Пт</div>
+                        <div class="weekday-header">Сб</div>
+                        <div class="weekday-header">Вс</div>
+                    </div>
+                    <div class="calendar-days-grid" id="planner-calendar-days"></div>
+                </div>
+                
+                <div class="planner-actions">
+                    <button class="add-task-btn" id="add-task-planner-btn">
+                        <span class="btn-icon">➕</span>
+                        <span class="btn-text">Добавить задачу</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    let plannerCurrentDate = new Date();
+    
+    function renderPlannerCalendar() {
+        const year = plannerCurrentDate.getFullYear();
+        const month = plannerCurrentDate.getMonth();
+        const monthElement = document.getElementById('current-month-planner');
+        if (monthElement) {
+            monthElement.textContent = `${monthNames[month]} ${year}`;
+        }
+        
+        const calendarDays = document.getElementById('planner-calendar-days');
+        if (!calendarDays) return;
+        
+        calendarDays.innerHTML = '';
+        
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        
+        const startDate = new Date(firstDay);
+        const dayOfWeek = firstDay.getDay();
+        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        startDate.setDate(firstDay.getDate() - daysToSubtract);
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        for (let i = 0; i < 42; i++) {
+            const cellDate = new Date(startDate);
+            cellDate.setDate(startDate.getDate() + i);
+            
+            const dayCell = document.createElement('div');
+            dayCell.className = 'planner-day-cell';
+            dayCell.setAttribute('data-date', cellDate.toISOString().split('T')[0]);
+            
+            const isOtherMonth = cellDate.getMonth() !== month;
+            const isToday = cellDate.toDateString() === today.toDateString();
+            const isWeekend = cellDate.getDay() === 0 || cellDate.getDay() === 6;
+            const isHol = isHoliday(cellDate);
+            
+            if (isOtherMonth) dayCell.classList.add('other-month');
+            if (isToday) dayCell.classList.add('today-cell');
+            if (isWeekend) dayCell.classList.add('weekend-cell');
+            if (isHol) dayCell.classList.add('holiday-cell');
+            
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = cellDate.getDate();
+            dayCell.appendChild(dayNumber);
+            
+            const dayItems = document.createElement('div');
+            dayItems.className = 'day-items';
+            
+            const schedule = getScheduleForDate(cellDate);
+            let hasLessons = false;
+            schedule.forEach(lesson => {
+                const lessonItem = document.createElement('div');
+                lessonItem.className = `day-item ${lesson.type}`;
+                dayItems.appendChild(lessonItem);
+                hasLessons = true;
+            });
+            
+            if (hasLessons) {
+                const divider = document.createElement('div');
+                divider.className = 'tasks-divider';
+                dayItems.appendChild(divider);
+            }
+            
+            const tasks = getTasksForDate(cellDate);
+            tasks.forEach(task => {
+                const taskItem = document.createElement('div');
+                taskItem.className = `day-item task-item ${task.priority}`;
+                dayItems.appendChild(taskItem);
+            });
+            
+            dayCell.appendChild(dayItems);
+            
+            if (isHol) {
+                const holidayName = document.createElement('div');
+                holidayName.className = 'holiday-name';
+                holidayName.textContent = getHolidayName(cellDate);
+                dayCell.appendChild(holidayName);
+            }
+            
+            dayCell.addEventListener('click', () => {
+                showDayPlan(cellDate);
+            });
+            
+            calendarDays.appendChild(dayCell);
+        }
+    }
+    
+    function getScheduleForDate(date) {
+        const dayName = getRussianDayName(date.getDay());
+        const baseSchedule = getUniversityData('schedule');
+        const daySchedule = baseSchedule.find(day => day.day === dayName);
+        
+        return daySchedule ? daySchedule.lessons : [];
+    }
+    
+    function getTasksForDate(date) {
+        const dateString = date.toISOString().split('T')[0];
+        const userTasks = JSON.parse(localStorage.getItem(`userTasks_${authService.currentUser.uid}`) || '[]');
+        return userTasks.filter(task => task.date === dateString);
+    }
+    
+    const prevBtn = modal.querySelector('#prev-month-planner');
+    const nextBtn = modal.querySelector('#next-month-planner');
+    const closeBtn = modal.querySelector('.planner-close');
+    const addTaskBtn = modal.querySelector('#add-task-planner-btn');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            plannerCurrentDate.setMonth(plannerCurrentDate.getMonth() - 1);
+            renderPlannerCalendar();
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            plannerCurrentDate.setMonth(plannerCurrentDate.getMonth() + 1);
+            renderPlannerCalendar();
+        });
+    }
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+    }
+    
+    if (addTaskBtn) {
+        addTaskBtn.addEventListener('click', () => {
+            openTaskModal();
+        });
+    }
+    
+    renderPlannerCalendar();
+}
+
+function showDayPlan(selectedDate) {
+    // Убираем выделение с других дней
+    document.querySelectorAll('.planner-day-cell').forEach(cell => {
+        cell.classList.remove('selected-day');
+    });
+    
+    // Выделяем выбранный день
+    const dateString = selectedDate.toISOString().split('T')[0];
+    const selectedCell = [...document.querySelectorAll('.planner-day-cell')].find(cell => {
+        const cellDate = cell.getAttribute('data-date') || '';
+        return cellDate === dateString;
+    });
+    
+    if (selectedCell) {
+        selectedCell.classList.add('selected-day');
+        selectedCell.setAttribute('data-date', dateString);
+    }
+    
+    // Убираем предыдущий план дня если есть
+    const existingPlan = document.querySelector('.day-plan-container');
+    if (existingPlan) {
+        existingPlan.remove();
+    }
+    
+    // Создаем контейнер для плана дня
+    const planContainer = document.createElement('div');
+    planContainer.className = 'day-plan-container';
+    
+    const formattedDate = selectedDate.toLocaleDateString('ru-RU', { 
+        weekday: 'long',
+        day: 'numeric', 
+        month: 'long',
+        year: 'numeric'
+    });
+    
+    // Получаем расписание и задачи на выбранный день
+    const schedule = getScheduleForDate(selectedDate);
+    const tasks = getTasksForDate(selectedDate);
+    const isHol = isHoliday(selectedDate);
+    const isWeekend = selectedDate.getDay() === 0 || selectedDate.getDay() === 6;
+    
+    let eventsHtml = '';
+    
+    // Добавляем праздник если есть
+    if (isHol) {
+        eventsHtml += `
+            <div class="day-event-item holiday">
+                <div class="event-time">🎉</div>
+                <div class="event-details">
+                    <h5>${getHolidayName(selectedDate)}</h5>
+                    <p>Праздничный день</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Добавляем занятия
+    if (schedule.length > 0 && !isWeekend && !isHol) {
+        schedule.forEach(lesson => {
+            eventsHtml += `
+                <div class="day-event-item ${lesson.type}">
+                    <div class="event-time">${lesson.time}</div>
+                    <div class="event-details">
+                        <h5>${lesson.subject}</h5>
+                        <p>👨‍🏫 ${lesson.teacher} • 🏢 ${lesson.room}</p>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    // Добавляем задачи
+    if (tasks.length > 0) {
+        tasks.forEach(task => {
+            const priorityIcon = task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢';
+            eventsHtml += `
+                <div class="day-event-item task">
+                    <div class="event-time">${task.time || priorityIcon}</div>
+                    <div class="event-details">
+                        <h5>${task.title}</h5>
+                        <p>Задача • Приоритет: ${task.priority === 'high' ? 'Высокий' : task.priority === 'medium' ? 'Средний' : 'Низкий'}</p>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    // Если нет событий
+    if (eventsHtml === '' && !isHol) {
+        if (isWeekend) {
+            eventsHtml = `
+                <div class="empty-day-plan">
+                    <div class="icon">🥰</div>
+                    <h4>Выходной день</h4>
+                    <p>Время для отдыха и развлечений</p>
+                </div>
+            `;
+        } else {
+            eventsHtml = `
+                <div class="empty-day-plan">
+                    <div class="icon">📅</div>
+                    <h4>Свободный день</h4>
+                    <p>На этот день ничего не запланировано</p>
+                </div>
+            `;
+        }
+    }
+    
+    planContainer.innerHTML = `
+        <div class="day-plan-header">
+            <h4>📅 ${formattedDate}</h4>
+            <button class="close-day-plan">×</button>
+        </div>
+        <div class="day-plan-content">
+            <div class="day-events-list">
+                ${eventsHtml}
+            </div>
+            <button class="add-to-day-plan" onclick="showAddTaskForm('${dateString}')">
+                <span>➕</span>
+                <span>ДОБАВИТЬ ЗАДАЧУ</span>
+            </button>
+        </div>
+    `;
+    
+    // Добавляем план дня в планировщик
+    const plannerBody = document.querySelector('.planner-modal-body');
+    if (plannerBody) {
+        plannerBody.appendChild(planContainer);
+        
+        // Обработчик закрытия плана дня
+        planContainer.querySelector('.close-day-plan').addEventListener('click', () => {
+            planContainer.remove();
+            // Убираем выделение дня
+            document.querySelectorAll('.planner-day-cell').forEach(cell => {
+                cell.classList.remove('selected-day');
+            });
+        });
+    }
+}
+
+function showAddTaskForm(dateString) {
+    const planContainer = document.querySelector('.day-plan-container');
+    if (!planContainer) return;
+    
+    // Проверяем, есть ли уже форма
+    const existingForm = planContainer.querySelector('.add-task-form');
+    if (existingForm) {
+        existingForm.remove();
+        return;
+    }
+    
+    // Создаем форму добавления задачи
+    const taskForm = document.createElement('div');
+    taskForm.className = 'add-task-form';
+    
+    taskForm.innerHTML = `
+        <div class="task-form-header">
+            <h5>✏️ Новая задача</h5>
+        </div>
+        <div class="task-form-body">
+            <div class="form-group">
+                <label>Название задачи *</label>
+                <input type="text" id="inline-task-title" class="form-input" placeholder="Например: Подготовиться к экзамену" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Время</label>
+                    <input type="time" id="inline-task-time" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Приоритет</label>
+                    <select id="inline-task-priority" class="form-select">
+                        <option value="low">🟢 Низкий</option>
+                        <option value="medium">🟡 Средний</option>
+                        <option value="high">🔴 Высокий</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Описание</label>
+                <textarea id="inline-task-description" class="form-textarea" placeholder="Добавьте детали..." rows="2"></textarea>
+            </div>
+            
+            <div class="task-form-actions">
+                <button type="button" class="btn-cancel" onclick="closeAddTaskForm()">Отмена</button>
+                <button type="button" class="btn-save" onclick="saveInlineTask('${dateString}')">
+                    <span>💾</span>
+                    <span>Сохранить</span>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Добавляем форму в план дня
+    const dayContent = planContainer.querySelector('.day-plan-content');
+    dayContent.appendChild(taskForm);
+    
+    // Фокусируемся на поле ввода
+    setTimeout(() => {
+        const titleInput = taskForm.querySelector('#inline-task-title');
+        if (titleInput) titleInput.focus();
+    }, 100);
+}
+
+function closeAddTaskForm() {
+    const taskForm = document.querySelector('.add-task-form');
+    if (taskForm) {
+        taskForm.remove();
+    }
+}
+
+function saveInlineTask(dateString) {
+    const titleInput = document.querySelector('#inline-task-title');
+    const timeInput = document.querySelector('#inline-task-time');
+    const prioritySelect = document.querySelector('#inline-task-priority');
+    const descriptionInput = document.querySelector('#inline-task-description');
+    
+    if (!titleInput || !titleInput.value.trim()) {
+        alert('Пожалуйста, введите название задачи');
+        return;
+    }
+    
+    const newTask = {
+        id: Date.now().toString(),
+        title: titleInput.value.trim(),
+        date: dateString,
+        time: timeInput ? timeInput.value : '',
+        priority: prioritySelect ? prioritySelect.value : 'low',
+        description: descriptionInput ? descriptionInput.value.trim() : '',
+        type: 'personal',
+        userId: authService.currentUser.uid,
+        completed: false
+    };
+    
+    // Добавляем задачу в массив
+    userEvents.push(newTask);
+    saveUserEvents();
+    
+    // Закрываем форму
+    closeAddTaskForm();
+    
+    // Обновляем отображение плана дня
+    const selectedDate = new Date(dateString + 'T00:00:00');
+    showDayPlan(selectedDate);
+    
+    // Обновляем календарь
+    const calendarDays = document.getElementById('planner-calendar-days');
+    if (calendarDays) {
+        // Перерисовываем календарь
+        const prevBtn = document.querySelector('#prev-month-planner');
+        const nextBtn = document.querySelector('#next-month-planner');
+        if (prevBtn && nextBtn) {
+            prevBtn.click();
+            setTimeout(() => nextBtn.click(), 50);
+        }
+    }
+    
+    showNotification('✅ Задача добавлена!', 'success');
+}
+
+function openTaskModal(date = null) {
+    const taskModal = document.createElement('div');
+    taskModal.className = 'service-modal active task-modal';
+    
+    const defaultDate = date || new Date();
+    const dateString = defaultDate.toISOString().split('T')[0];
+    
+    taskModal.innerHTML = `
+        <div class="modal-content task-modal-content">
+            <div class="task-modal-header">
+                <h3>✏️ Новая задача</h3>
+                <button class="task-close">&times;</button>
+            </div>
+            <div class="task-modal-body">
+                <form class="task-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Название задачи *</label>
+                            <input type="text" id="task-title" class="form-input" placeholder="Введите название" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Дата *</label>
+                            <input type="date" id="task-date" class="form-input" value="${dateString}" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Время</label>
+                            <input type="time" id="task-time" class="form-input">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Описание</label>
+                        <textarea id="task-desc" class="form-textarea" placeholder="Описание задачи..." rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Приоритет</label>
+                        <div class="priority-selector">
+                            <div class="priority-option">
+                                <input type="radio" name="priority" value="low" id="priority-low" checked>
+                                <label for="priority-low" class="priority-badge low">🟢 Низкий</label>
+                            </div>
+                            <div class="priority-option">
+                                <input type="radio" name="priority" value="medium" id="priority-medium">
+                                <label for="priority-medium" class="priority-badge medium">🟡 Средний</label>
+                            </div>
+                            <div class="priority-option">
+                                <input type="radio" name="priority" value="high" id="priority-high">
+                                <label for="priority-high" class="priority-badge high">🔴 Высокий</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-actions">
+                        <button type="button" class="btn-cancel">Отмена</button>
+                        <button type="button" class="btn-save" id="save-task-btn">
+                            <span>💾</span>
+                            <span>Сохранить</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(taskModal);
+    
+    const closeBtn = taskModal.querySelector('.task-close');
+    const cancelBtn = taskModal.querySelector('.btn-cancel');
+    const saveBtn = taskModal.querySelector('#save-task-btn');
+    
+    const closeModal = () => {
+        document.body.removeChild(taskModal);
+    };
+    
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            const title = taskModal.querySelector('#task-title').value.trim();
+            const taskDate = taskModal.querySelector('#task-date').value;
+            const time = taskModal.querySelector('#task-time').value;
+            const desc = taskModal.querySelector('#task-desc').value.trim();
+            const priority = taskModal.querySelector('input[name="priority"]:checked').value;
+            
+            if (!title || !taskDate) {
+                alert('Пожалуйста, заполните название и дату задачи');
+                return;
+            }
+            
+            const newTask = {
+                id: Date.now(),
+                title,
+                date: taskDate,
+                time,
+                desc,
+                priority,
+                userId: authService.currentUser.uid,
+                completed: false
+            };
+            
+            const userTasks = JSON.parse(localStorage.getItem(`userTasks_${authService.currentUser.uid}`) || '[]');
+            userTasks.push(newTask);
+            localStorage.setItem(`userTasks_${authService.currentUser.uid}`, JSON.stringify(userTasks));
+            
+            showNotification('✅ Задача добавлена!', 'success');
+            closeModal();
+            
+            const plannerModal = document.querySelector('.planner-modal-overlay');
+            if (plannerModal) {
+                const event = new Event('click');
+                const nextBtn = plannerModal.querySelector('#next-month-planner');
+                const prevBtn = plannerModal.querySelector('#prev-month-planner');
+                if (nextBtn) {
+                    nextBtn.click();
+                    setTimeout(() => prevBtn && prevBtn.click(), 10);
+                }
+            }
+        });
+    }
 }
 
 function setupNavigation() {
@@ -670,7 +1271,7 @@ function formatDate(dateString) {
         
         if (isNaN(date.getTime())) {
             console.warn('Невалидная дата:', dateString);
-            return dateString; 
+            return dateString; // Возвращаем оригинальную строку для отладки
         }
         
         const today = new Date();
@@ -1441,7 +2042,8 @@ function handleServiceClick(event) {
     closeAllServiceModals();
     switch(service) {
         case 'library':
-            openQuestionService(); 
+            showServiceModal('📚 Библиотека', 
+                'Данный сервис пока не реализован, но мы займемся этим позже, но вы не расстраивайтесь, посмотрите на остальные сервисы, они хороши, поверьте мне )');
             break;
             
         case 'documents':
@@ -1464,166 +2066,6 @@ function handleServiceClick(event) {
             showEventsCalendar();
             break;
     }
-}
-
-
-function openQuestionService() {
-    const modal = document.createElement('div');
-    modal.className = 'service-modal active';
-    
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>❓ Задать вопрос</h3>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="service-description">
-                    <p>Задайте вопрос администрации университета или получите консультацию</p>
-                </div>
-                
-                <form id="question-form" class="question-form">
-                    <div class="form-group">
-                        <label>Тип вопроса *</label>
-                        <select id="question-type" class="form-select" required>
-                            <option value="">Выберите тип вопроса</option>
-                            <option value="academic">Учебный процесс</option>
-                            <option value="documents">Документы</option>
-                            <option value="dormitory">Общежитие</option>
-                            <option value="scholarship">Стипендия</option>
-                            <option value="schedule">Расписание</option>
-                            <option value="other">Другое</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Тема вопроса *</label>
-                        <input type="text" id="question-title" class="form-input" placeholder="Кратко опишите тему вопроса" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Подробное описание *</label>
-                        <textarea id="question-description" class="form-textarea" placeholder="Опишите ваш вопрос подробно..." rows="5" required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Приоритет</label>
-                        <select id="question-priority" class="form-select">
-                            <option value="low">Низкий</option>
-                            <option value="medium" selected>Средний</option>
-                            <option value="high">Высокий</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Контакт для ответа *</label>
-                        <input type="text" id="question-contact" class="form-input" placeholder="Email или телефон для связи" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Прикрепить файлы (необязательно)</label>
-                        <input type="file" id="question-files" class="form-input" multiple>
-                        <small>Можно прикрепить до 3 файлов (PDF, JPG, PNG)</small>
-                    </div>
-                </form>
-                
-                <div class="service-actions">
-                    <button type="button" class="btn-secondary">Отмена</button>
-                    <button type="button" id="submit-question" class="btn-primary">Отправить вопрос</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    setupQuestionHandlers(modal);
-}
-
-function setupQuestionHandlers(modal) {
-    const submitBtn = modal.querySelector('#submit-question');
-    const form = modal.querySelector('#question-form');
-    
-    submitBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        handleQuestionSubmission(modal);
-    });
-    
-    setupModalHandlers(modal);
-}
-
-
-function handleQuestionSubmission(modal) {
-    const formData = {
-        type: modal.querySelector('#question-type').value,
-        title: modal.querySelector('#question-title').value.trim(),
-        description: modal.querySelector('#question-description').value.trim(),
-        priority: modal.querySelector('#question-priority').value,
-        contact: modal.querySelector('#question-contact').value.trim(),
-        studentName: authService.currentUser.profile.firstName + ' ' + authService.currentUser.profile.lastName,
-        group: authService.currentUser.profile.group,
-        timestamp: new Date().toISOString(),
-        status: 'new'
-    };
-    
-    if (!formData.type || !formData.title || !formData.description || !formData.contact) {
-        alert('Пожалуйста, заполните все обязательные поля');
-        return;
-    }
-    
-    showQuestionSuccessNotification(formData, modal);
-}
-
-
-function showQuestionSuccessNotification(questionData, modal) {
-    document.body.removeChild(modal);
-    
-    const notification = document.createElement('div');
-    notification.className = 'success-notification question-success';
-    notification.innerHTML = `
-        <div class="notification-content">
-            <span class="notification-icon">✅</span>
-            <div class="notification-text">
-                <strong>Вопрос отправлен!</strong>
-                <div style="font-size: 0.9rem; margin-top: 5px; opacity: 0.9;">
-                    Тип: ${getQuestionTypeText(questionData.type)}<br>
-                    Тема: "${questionData.title}"<br>
-                    Приоритет: ${getPriorityText(questionData.priority)}<br>
-                    <em>Ответ поступит на указанные контакты</em>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        if (document.body.contains(notification)) {
-            document.body.removeChild(notification);
-        }
-    }, 5000);
-    
-    console.log('Вопрос отправлен:', questionData);
-}
-
-function getQuestionTypeText(type) {
-    const types = {
-        'academic': 'Учебный процесс',
-        'documents': 'Документы',
-        'dormitory': 'Общежитие',
-        'scholarship': 'Стипендия',
-        'schedule': 'Расписание',
-        'other': 'Другое'
-    };
-    return types[type] || type;
-}
-
-function getPriorityText(priority) {
-    const priorities = {
-        'low': 'Низкий',
-        'medium': 'Средний',
-        'high': 'Высокий'
-    };
-    return priorities[priority] || priority;
 }
 
 function closeAllServiceModals() {
@@ -1846,6 +2288,7 @@ function handleBookingSubmission(modal, form) {
     const roomId = document.getElementById('room-select').value;
     const room = mockData.classrooms.find(r => r.id == roomId);
     
+    // Валидация
     if (!roomType || !roomId) {
         alert('Пожалуйста, выберите тип помещения и конкретную аудиторию');
         return;
@@ -3068,9 +3511,532 @@ function formatWeekRange(startDate, endDate) {
     }
 }
 
-document.getElementById('month-view')?.addEventListener('click', () => {
-    alert("📆 Месячный вид в разработке! Скоро будет доступен.");
-});
+// Обработчик для кнопки планировщика будет добавлен в reinitializeApp() в auth.js
+
+function openPlanner() {
+    const modal = document.createElement('div');
+    modal.className = 'service-modal active planner-modal-overlay';
+    
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                       'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    
+    modal.innerHTML = `
+        <div class="modal-content planner-modal-content">
+            <div class="planner-modal-header">
+                <div class="planner-header-left">
+                    <span class="planner-header-icon">📅</span>
+                    <h3>Планировщик задач</h3>
+                </div>
+                <button class="close-modal planner-close">&times;</button>
+            </div>
+            <div class="modal-body planner-modal-body">
+                <div class="planner-controls">
+                    <button id="prev-month" class="planner-nav-btn">
+                        <span>←</span>
+                    </button>
+                    <h4 id="current-month">${monthNames[month]} ${year}</h4>
+                    <button id="next-month" class="planner-nav-btn">
+                        <span>→</span>
+                    </button>
+                </div>
+                
+                <div id="monthly-calendar" class="monthly-calendar-grid"></div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    let displayDate = new Date(currentDate);
+    
+    function renderCalendar() {
+        const calendar = document.getElementById('monthly-calendar');
+        if (!calendar) return;
+        
+        const year = displayDate.getFullYear();
+        const month = displayDate.getMonth();
+        
+        const monthTitle = document.getElementById('current-month');
+        if (monthTitle) {
+            monthTitle.textContent = `${monthNames[month]} ${year}`;
+        }
+        
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDate = new Date(firstDay);
+        startDate.setDate(firstDay.getDate() - firstDay.getDay() + (firstDay.getDay() === 0 ? -6 : 1));
+        
+        const endDate = new Date(lastDay);
+        endDate.setDate(lastDay.getDate() + (6 - lastDay.getDay()));
+        
+        calendar.innerHTML = `
+            <div class="calendar-weekdays">
+                <div class="weekday-header">Пн</div>
+                <div class="weekday-header">Вт</div>
+                <div class="weekday-header">Ср</div>
+                <div class="weekday-header">Чт</div>
+                <div class="weekday-header">Пт</div>
+                <div class="weekday-header">Сб</div>
+                <div class="weekday-header">Вс</div>
+            </div>
+            <div class="calendar-days-grid" id="calendar-days-grid"></div>
+        `;
+        
+        const daysGrid = document.getElementById('calendar-days-grid');
+        if (!daysGrid) return;
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        let date = new Date(startDate);
+        while (date <= endDate) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'planner-day-cell';
+            
+            const isOtherMonth = date.getMonth() !== month;
+            const isToday = date.toDateString() === today.toDateString();
+            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+            const holidayInfo = isHoliday(date);
+            
+            if (isOtherMonth) dayElement.classList.add('other-month');
+            if (isToday) dayElement.classList.add('today-cell');
+            if (isWeekend && !holidayInfo) dayElement.classList.add('weekend-cell');
+            if (holidayInfo) dayElement.classList.add('holiday-cell');
+            
+            const dayTasks = getTasksForDate(date);
+            const dayLessons = !holidayInfo && !isWeekend ? getLessonsForDate(date) : [];
+            
+            let dayContent = `<div class="day-number">${date.getDate()}</div>`;
+            
+            if (holidayInfo) {
+                dayContent += `<div class="holiday-name">${getHolidayName(date)}</div>`;
+            } else {
+                dayContent += `
+                    <div class="day-items">
+                        ${dayLessons.map(lesson => `
+                            <div class="day-item lesson-item ${lesson.type}" title="${lesson.subject}"></div>
+                        `).join('')}
+                        ${dayTasks.map(task => `
+                            <div class="day-item task-item ${task.priority}" title="${task.title}"></div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            dayElement.innerHTML = dayContent;
+            
+            const dateForClick = new Date(date);
+            dayElement.addEventListener('click', () => {
+                openDayDetailsModal(dateForClick, dayLessons, dayTasks, holidayInfo);
+            });
+            
+            daysGrid.appendChild(dayElement);
+            date.setDate(date.getDate() + 1);
+        }
+    }
+    
+    renderCalendar();
+    
+    const prevBtn = modal.querySelector('#prev-month');
+    const nextBtn = modal.querySelector('#next-month');
+    const addBtn = modal.querySelector('#add-task-btn');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            displayDate.setMonth(displayDate.getMonth() - 1);
+            renderCalendar();
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            displayDate.setMonth(displayDate.getMonth() + 1);
+            renderCalendar();
+        });
+    }
+    
+    if (addBtn) {
+        addBtn.addEventListener('click', () => {
+            openAddTaskModal(new Date(), modal);
+        });
+    }
+    
+    setupModalHandlers(modal);
+}
+
+function getLessonsForDate(date) {
+    const dayNames = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+    const dayName = dayNames[date.getDay()];
+    
+    try {
+        const universitySchedule = getUniversityData('schedule');
+        if (!universitySchedule) return [];
+        
+        const daySchedule = universitySchedule.find(day => day.day === dayName);
+        return (daySchedule && daySchedule.lessons) ? daySchedule.lessons : [];
+    } catch (error) {
+        console.error('Ошибка получения расписания:', error);
+        return [];
+    }
+}
+
+function openDayDetailsModal(date, lessons, tasks, holidayInfo) {
+    const detailModal = document.createElement('div');
+    detailModal.className = 'service-modal active day-detail-modal';
+    
+    const dateString = date.toLocaleDateString('ru-RU', { 
+        day: 'numeric', 
+        month: 'long',
+        year: 'numeric'
+    });
+    
+    const weekdayName = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'][date.getDay()];
+    
+    let headerIcon = '📅';
+    if (holidayInfo) headerIcon = '🎉';
+    else if (date.getDay() === 0 || date.getDay() === 6) headerIcon = '🌟';
+    
+    detailModal.innerHTML = `
+        <div class="modal-content day-detail-content">
+            <div class="modal-header day-detail-header">
+                <div class="detail-header-content">
+                    <h3>${headerIcon} ${dateString}</h3>
+                    <p class="weekday-name">${weekdayName}</p>
+                </div>
+                <button class="close-modal detail-close">&times;</button>
+            </div>
+            <div class="modal-body day-detail-body">
+                ${holidayInfo ? `
+                    <div class="holiday-banner">
+                        <div class="holiday-icon">🎉</div>
+                        <h4>${getHolidayName(date)}</h4>
+                        <p>Праздничный день</p>
+                    </div>
+                ` : ''}
+                
+                ${lessons.length > 0 ? `
+                    <div class="detail-section">
+                        <h4 class="section-title">
+                            <span class="section-icon">📚</span>
+                            Занятия
+                        </h4>
+                        <div class="lessons-list">
+                            ${lessons.map(lesson => `
+                                <div class="detail-lesson ${lesson.type}">
+                                    <div class="lesson-time-badge">${lesson.time}</div>
+                                    <div class="lesson-content">
+                                        <div class="lesson-name">${lesson.subject}</div>
+                                        <div class="lesson-meta">
+                                            <span>👨‍🏫 ${lesson.teacher}</span>
+                                            <span>🏢 ${lesson.room}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${tasks.length > 0 ? `
+                    <div class="detail-section">
+                        <h4 class="section-title">
+                            <span class="section-icon">✓</span>
+                            Задачи
+                        </h4>
+                        <div class="tasks-list">
+                            ${tasks.map(task => `
+                                <div class="detail-task ${task.priority}" onclick="event.stopPropagation(); openTaskDetails('${task.id}')">
+                                    <div class="task-check ${task.completed ? 'checked' : ''}">
+                                        ${task.completed ? '✓' : '○'}
+                                    </div>
+                                    <div class="task-content">
+                                        <div class="task-name ${task.completed ? 'completed' : ''}">${task.title}</div>
+                                        ${task.time ? `<div class="task-time">⏰ ${task.time}</div>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${lessons.length === 0 && tasks.length === 0 && !holidayInfo ? `
+                    <div class="empty-day-detail">
+                        <div class="empty-icon">📭</div>
+                        <p>На этот день ничего не запланировано</p>
+                        <small>Нажмите кнопку ниже, чтобы добавить задачу</small>
+                    </div>
+                ` : ''}
+                
+                <div class="detail-actions">
+                    <button class="btn-primary add-task-day-btn" onclick="event.stopPropagation(); openAddTaskModalForDate('${date.toISOString()}')">
+                        <span>+</span>
+                        <span>Добавить задачу</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(detailModal);
+    setupModalHandlers(detailModal);
+}
+
+window.openAddTaskModalForDate = function(dateString) {
+    // Закрываем модальное окно деталей дня
+    const existingDayModal = document.querySelector('.day-detail-modal');
+    if (existingDayModal) {
+        existingDayModal.style.display = 'none';
+    }
+    
+    const plannerModal = document.querySelector('.planner-modal-overlay');
+    openAddTaskModal(new Date(dateString), plannerModal, existingDayModal);
+};
+
+
+function getTasksForDate(date) {
+    const dateString = date.toISOString().split('T')[0];
+    return userEvents.filter(event => 
+        event.date === dateString && 
+        event.userId === authService.currentUser.uid
+    );
+}
+
+function openAddTaskModal(prefilledDate, parentModal, dayModal) {
+    const taskModal = document.createElement('div');
+    taskModal.className = 'service-modal active task-modal';
+    
+    const defaultDate = prefilledDate || new Date();
+    const dateString = defaultDate.toISOString().split('T')[0];
+    
+    taskModal.innerHTML = `
+        <div class="modal-content task-modal-content">
+            <div class="modal-header task-modal-header">
+                <h3>✏️ Новая задача</h3>
+                <button class="close-modal task-close">&times;</button>
+            </div>
+            <div class="modal-body task-modal-body">
+                <form id="add-task-form" class="task-form">
+                    <div class="form-group">
+                        <label class="form-label">Название задачи *</label>
+                        <input type="text" id="task-title" class="form-input" 
+                               placeholder="Например: Подготовиться к экзамену" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Дата *</label>
+                            <input type="date" id="task-date" class="form-input" value="${dateString}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Время</label>
+                            <input type="time" id="task-time" class="form-input">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Приоритет</label>
+                        <div class="priority-selector">
+                            <label class="priority-option">
+                                <input type="radio" name="task-priority" value="low" checked>
+                                <span class="priority-badge low">🟢 Низкий</span>
+                            </label>
+                            <label class="priority-option">
+                                <input type="radio" name="task-priority" value="medium">
+                                <span class="priority-badge medium">🟡 Средний</span>
+                            </label>
+                            <label class="priority-option">
+                                <input type="radio" name="task-priority" value="high">
+                                <span class="priority-badge high">🔴 Высокий</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Категория</label>
+                        <select id="task-category" class="form-select">
+                            <option value="academic">📚 Учеба</option>
+                            <option value="personal">👤 Личное</option>
+                            <option value="work">💼 Работа</option>
+                            <option value="sport">⚽️ Спорт</option>
+                            <option value="other">📌 Другое</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Описание</label>
+                        <textarea id="task-description" class="form-textarea" 
+                                  placeholder="Добавьте детали..." rows="3"></textarea>
+                    </div>
+                </form>
+                
+                <div class="task-actions">
+                    <button type="button" class="btn-cancel close-task-modal">Отмена</button>
+                    <button type="button" id="submit-task" class="btn-save">
+                        <span>💾</span>
+                        <span>Сохранить</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(taskModal);
+    
+    const closeTaskModal = () => {
+        document.body.removeChild(taskModal);
+        if (dayModal) {
+            dayModal.style.display = 'flex';
+        }
+    };
+    
+    taskModal.querySelector('#submit-task').addEventListener('click', () => {
+        handleTaskSubmission(taskModal, parentModal, dayModal);
+    });
+    
+    taskModal.querySelector('.close-task-modal').addEventListener('click', closeTaskModal);
+    taskModal.querySelector('.close-modal').addEventListener('click', closeTaskModal);
+    
+    taskModal.addEventListener('click', (e) => {
+        if (e.target === taskModal) {
+            closeTaskModal();
+        }
+    });
+}
+
+function handleTaskSubmission(taskModal, parentModal, dayModal) {
+    const formData = {
+        title: taskModal.querySelector('#task-title').value.trim(),
+        date: taskModal.querySelector('#task-date').value,
+        time: taskModal.querySelector('#task-time').value,
+        priority: taskModal.querySelector('input[name="task-priority"]:checked').value,
+        type: taskModal.querySelector('#task-category').value,
+        description: taskModal.querySelector('#task-description').value.trim(),
+        userId: authService.currentUser.uid,
+        id: Date.now().toString(),
+        completed: false
+    };
+    
+    if (!formData.title) {
+        alert('Пожалуйста, введите название задачи');
+        return;
+    }
+    
+    userEvents.push(formData);
+    saveUserEvents();
+    
+    document.body.removeChild(taskModal);
+    
+    // Закрываем модальное окно деталей дня
+    if (dayModal) {
+        document.body.removeChild(dayModal);
+    }
+    
+    // Перерисовываем календарь в планировщике
+    const plannerCalendar = document.querySelector('.planner-modal-overlay');
+    if (plannerCalendar) {
+        const renderBtn = document.querySelector('#prev-month');
+        if (renderBtn) {
+            renderBtn.click();
+            setTimeout(() => {
+                document.querySelector('#next-month').click();
+            }, 10);
+        }
+    }
+    
+    if (parentModal && parentModal.querySelector) {
+        const renderFunc = parentModal.querySelector('#prev-month');
+        if (renderFunc) {
+            renderFunc.click();
+            setTimeout(() => renderFunc.nextElementSibling.nextElementSibling.click(), 10);
+        }
+    }
+    
+    showNotification('✅ Задача добавлена в планировщик', 'success');
+}
+
+function openTaskDetails(taskId) {
+    const task = userEvents.find(e => e.id === taskId);
+    if (!task) return;
+    
+    const detailModal = document.createElement('div');
+    detailModal.className = 'service-modal active';
+    
+    const priorityText = {
+        'low': '🔵 Низкий',
+        'medium': '🟡 Средний',
+        'high': '🔴 Высокий'
+    };
+    
+    const categoryText = {
+        'academic': '📚 Учеба',
+        'personal': '👤 Личное',
+        'work': '💼 Работа',
+        'sport': '⚽️ Спорт',
+        'other': '📌 Другое'
+    };
+    
+    detailModal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 ${task.title}</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="task-details">
+                    <div class="task-detail-item">
+                        <strong>Дата:</strong> ${formatDate(task.date)}
+                    </div>
+                    ${task.time ? `<div class="task-detail-item"><strong>Время:</strong> ${task.time}</div>` : ''}
+                    <div class="task-detail-item">
+                        <strong>Приоритет:</strong> ${priorityText[task.priority]}
+                    </div>
+                    <div class="task-detail-item">
+                        <strong>Категория:</strong> ${categoryText[task.type]}
+                    </div>
+                    ${task.description ? `<div class="task-detail-item"><strong>Описание:</strong><br>${task.description}</div>` : ''}
+                    <div class="task-detail-item">
+                        <strong>Статус:</strong> ${task.completed ? '✅ Выполнено' : '⏳ В работе'}
+                    </div>
+                </div>
+                
+                <div class="service-actions">
+                    <button type="button" class="btn-secondary" id="delete-task">Удалить</button>
+                    <button type="button" class="btn-primary" id="toggle-complete">
+                        ${task.completed ? 'Вернуть в работу' : 'Отметить выполненной'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(detailModal);
+    
+    detailModal.querySelector('#delete-task').addEventListener('click', () => {
+        if (confirm('Удалить эту задачу?')) {
+            userEvents = userEvents.filter(e => e.id !== taskId);
+            saveUserEvents();
+            document.body.removeChild(detailModal);
+            showNotification('✅ Задача удалена', 'success');
+        }
+    });
+    
+    detailModal.querySelector('#toggle-complete').addEventListener('click', () => {
+        const taskIndex = userEvents.findIndex(e => e.id === taskId);
+        if (taskIndex !== -1) {
+            userEvents[taskIndex].completed = !userEvents[taskIndex].completed;
+            saveUserEvents();
+            document.body.removeChild(detailModal);
+            showNotification(userEvents[taskIndex].completed ? '✅ Задача выполнена!' : '🔄 Задача возвращена в работу', 'success');
+        }
+    });
+    
+    setupModalHandlers(detailModal);
+}
 
 
 function openDocumentsService() {

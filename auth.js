@@ -234,13 +234,18 @@ updateContent() {
     </section>
 
     <section id="schedule" class="tab-content">
+      <button id="planner-btn" class="planner-full-btn">
+        <span class="planner-icon">📅</span>
+        <span class="planner-text">Открыть планировщик задач</span>
+        <span class="planner-arrow">→</span>
+      </button>
+      
       <div class="schedule-header">
         <button id="prev-week">←</button>
         <h3 id="current-week"></h3>
         <button id="next-week">→</button>
       </div>
       <div id="schedule-grid"></div>
-      <button id="month-view" class="month-btn">📆 Месячный вид</button>
     </section>
 
     <section id="services" class="tab-content">
@@ -426,6 +431,21 @@ reinitializeApp() {
       initializeSmartSearch();
     }, 100);
   }
+  
+  // Подключаем обработчик кнопки планировщика
+  setTimeout(() => {
+    const plannerBtn = document.getElementById('planner-btn');
+    if (plannerBtn) {
+      plannerBtn.replaceWith(plannerBtn.cloneNode(true));
+      const newPlannerBtn = document.getElementById('planner-btn');
+      if (newPlannerBtn && typeof openPlannerModal === 'function') {
+        newPlannerBtn.addEventListener('click', () => {
+          openPlannerModal();
+        });
+        console.log('Обработчик планировщика подключен');
+      }
+    }
+  }, 100);
   
   console.log('Приложение переинициализировано');
 }

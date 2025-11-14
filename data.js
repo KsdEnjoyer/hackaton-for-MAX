@@ -683,10 +683,6 @@ function getCurrentWeek() {
 }
 
 // 🔧 УТИЛИТЫ ДЛЯ РАБОТЫ С МУЛЬТИ-УНИВЕРСИТЕТСКИМИ ДАННЫМИ
-
-// Получить данные конкретного университета
-// 🔧 УТИЛИТЫ ДЛЯ РАБОТЫ С МУЛЬТИ-УНИВЕРСИТЕТСКИМИ ДАННЫМИ
-// 🔧 УТИЛИТЫ ДЛЯ РАБОТЫ С МУЛЬТИ-УНИВЕРСИТЕТСКИМИ ДАННЫМИ
 function getUniversityData(dataType, universityId = null) {
     const targetUniversityId = universityId || (authService?.currentUniversity?.id);
     
