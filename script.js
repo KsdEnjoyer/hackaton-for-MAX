@@ -73,10 +73,10 @@ function initializeStudentApp() {
     if (typeof setupNavigation === 'function') setupNavigation();
     if (typeof setupServices === 'function') setupServices();
     if (typeof updateWeekInfo === 'function') updateWeekInfo();
-    if (typeof renderTodaySchedule === 'function') renderTodaySchedule();
-    if (typeof renderNews === 'function') renderNews();
-    if (typeof renderWeekSchedule === 'function') renderWeekSchedule();
-    if (typeof renderClubs === 'function') renderClubs();
+    if (typeof renderTodaySchedule === 'function') renderTodaySchedule().catch(err => console.error('Ошибка загрузки расписания:', err));
+    if (typeof renderNews === 'function') renderNews().catch(err => console.error('Ошибка загрузки новостей:', err));
+    if (typeof renderWeekSchedule === 'function') renderWeekSchedule().catch(err => console.error('Ошибка загрузки недельного расписания:', err));
+    if (typeof renderClubs === 'function') renderClubs().catch(err => console.error('Ошибка загрузки клубов:', err));
   }
   
   console.log('Интерфейс студента инициализирован');

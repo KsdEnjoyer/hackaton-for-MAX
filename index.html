@@ -5,13 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Учебный портал MAX</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <script src="auth.js"></script>
 <body>
   <div class="app">
     <header class="header">
       <h1>📚 Учебный портал</h1>
-      <div class="user-info">Иван Иванов | ИВТ-321</div>
+      <div class="header-actions">
+        <button id="notifications-btn" class="notifications-btn">
+          <span class="notification-icon">🔔</span>
+          <span class="notification-badge hidden">0</span>
+        </button>
+        <div class="user-info">Иван Иванов | ИВТ-321</div>
+      </div>
     </header>
     <main class="content">
       <section id="feed" class="tab-content active">
@@ -421,6 +429,7 @@
 
   
   <script src="data.js"></script>
+  <script src="supabase-client.js"></script>
   <script src="staff.js"></script> 
   <script src="student_inter.js"></script>
   <script src="script.js"></script>

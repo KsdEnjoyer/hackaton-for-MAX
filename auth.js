@@ -415,15 +415,15 @@ reinitializeApp() {
     newsAlreadyRendered = false;
   }
   
-  if (typeof renderTodaySchedule === 'function') renderTodaySchedule();
+  if (typeof renderTodaySchedule === 'function') renderTodaySchedule().catch(err => console.error('Ошибка загрузки расписания:', err));
   
   if (typeof renderNews === 'function' && determineUserType() === 'student') {
     console.log('Вызываем renderNews для студента');
-    renderNews();
+    renderNews().catch(err => console.error('Ошибка загрузки новостей:', err));
   }
   
-  if (typeof renderClubs === 'function') renderClubs();
-  if (typeof renderWeekSchedule === 'function') renderWeekSchedule();
+  if (typeof renderClubs === 'function') renderClubs().catch(err => console.error('Ошибка загрузки клубов:', err));
+  if (typeof renderWeekSchedule === 'function') renderWeekSchedule().catch(err => console.error('Ошибка загрузки недельного расписания:', err));
   if (typeof updateWeekInfo === 'function') updateWeekInfo();
   
   if (typeof initializeSmartSearch === 'function') {
@@ -432,7 +432,6 @@ reinitializeApp() {
     }, 100);
   }
   
-  // Подключаем обработчик кнопки планировщика
   setTimeout(() => {
     const plannerBtn = document.getElementById('planner-btn');
     if (plannerBtn) {

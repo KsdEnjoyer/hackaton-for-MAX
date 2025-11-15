@@ -1,0 +1,302 @@
+.chat-container {
+    width: 100%;
+    max-width: 800px;
+    height: 600px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.chat-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+}
+
+.chat-avatar {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.avatar-icon {
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+}
+
+.chat-info h3 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.status {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.action-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+}
+
+.quick-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+    transition: all 0.3s;
+    flex-shrink: 0;
+}
+
+.quick-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.messages-container {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    max-width: 85%;
+    animation: messageAppear 0.3s ease-out;
+}
+
+@keyframes messageAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bot-message {
+    align-self: flex-start;
+}
+
+.user-message {
+    align-self: flex-end;
+}
+
+.message-content {
+    padding: 15px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #e2e8f0;
+}
+
+.bot-message .message-content {
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom-left-radius: 5px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-message .message-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.message-content strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+.action-buttons {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.launch-button {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 25px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+}
+
+.launch-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 222, 128, 0.4);
+}
+
+.typing-indicator {
+    align-self: flex-start;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 4px;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    border-bottom-left-radius: 5px;
+    backdrop-filter: blur(10px);
+}
+
+.typing-dots span {
+    width: 8px;
+    height: 8px;
+    background: #667eea;
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+}
+
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+}
+
+.chat-input-container {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 15px 20px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    outline: none;
+    font-size: 14px;
+    transition: all 0.3s;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    backdrop-filter: blur(10px);
+}
+
+.chat-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.chat-input:focus {
+    border-color: #667eea;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.send-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    opacity: 1;
+}
+
+.send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.send-button:not(:disabled):hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .chat-container {
+        height: 100vh;
+        border-radius: 0;
+    }
+    
+    .message {
+        max-width: 95%;
+    }
+    
+    .quick-actions {
+        padding: 12px 15px;
+    }
+    
+    .quick-btn {
+        padding: 8px 15px;
+        font-size: 11px;
+    }
+    
+    .launch-button {
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+}

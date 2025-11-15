@@ -12,30 +12,43 @@ let currentPlannerDate = new Date();
 let userEvents = [];
 let isMonthlyCalendarRendered = false;
 
-function initializePlanner() {
-    loadUserEvents();
+function getEventTypeColor(type) {
+    const colors = {
+        'personal': '#2196f3',
+        'academic': '#4caf50',
+        'social': '#ff9800',
+        'work': '#9c27b0'
+    };
+    return colors[type] || '#2196f3';
+}
+
+async function initializePlanner() {
+    await loadUserEvents();
     setupViewSwitcher();
     setupMonthNavigation();
     renderMonthlyCalendar();
 }
-function loadUserEvents() {
+
+async function loadUserEvents() {
     try {
-        const savedEvents = localStorage.getItem(`userEvents_${authService.currentUser.uid}`);
-        if (savedEvents) {
-            userEvents = JSON.parse(savedEvents);
+        const currentUser = authService.currentUser;
+        if (!currentUser) {
+            console.error('Пользователь не авторизован');
+            userEvents = [];
+            return;
         }
+
+        const events = await SupabaseDB.getUserEvents(currentUser.uid);
+        userEvents = events || [];
+        console.log('📅 События пользователя загружены:', userEvents.length);
     } catch (error) {
-        console.error('Ошибка загрузки событий:', error);
+        console.error('❌ Ошибка загрузки событий пользователя:', error);
         userEvents = [];
     }
 }
 
-function saveUserEvents() {
-    try {
-        localStorage.setItem(`userEvents_${authService.currentUser.uid}`, JSON.stringify(userEvents));
-    } catch (error) {
-        console.error('Ошибка сохранения событий:', error);
-    }
+async function saveUserEvents() {
+    console.log('💾 Сохранение через БД');
 }
 
 function setupViewSwitcher() {
@@ -62,7 +75,6 @@ function setupViewSwitcher() {
                 monthView.classList.remove('hidden');
                 weekNav.classList.add('hidden');
                 monthNav.classList.remove('hidden');
-                // Убираем лишний вызов renderMonthlyCalendar()
                 if (!isMonthlyCalendarRendered) {
                     renderMonthlyCalendar();
                     isMonthlyCalendarRendered = true;
@@ -81,7 +93,7 @@ function setupMonthNavigation() {
     if (prevBtn) {
         prevBtn.addEventListener('click', () => {
             currentPlannerDate.setMonth(currentPlannerDate.getMonth() - 1);
-            isMonthlyCalendarRendered = false; // Сбрасываем флаг при смене месяца
+            isMonthlyCalendarRendered = false; 
             renderMonthlyCalendar();
         });
     }
@@ -89,7 +101,7 @@ function setupMonthNavigation() {
     if (nextBtn) {
         nextBtn.addEventListener('click', () => {
             currentPlannerDate.setMonth(currentPlannerDate.getMonth() + 1);
-            isMonthlyCalendarRendered = false; // Сбрасываем флаг при смене месяца
+            isMonthlyCalendarRendered = false; 
             renderMonthlyCalendar();
         });
     }
@@ -103,7 +115,6 @@ function renderMonthlyCalendar() {
     const calendar = document.getElementById('monthly-calendar');
     if (!calendar) return;
 
-    // Очищаем календарь перед рендерингом
     calendar.innerHTML = '';
 
     const year = currentPlannerDate.getFullYear();
@@ -170,7 +181,7 @@ function renderMonthlyCalendar() {
 
         dayElement.addEventListener('click', (e) => {
             if (!e.target.classList.contains('calendar-event')) {
-                openAddEventModal(date);
+                showDayEventsPanel(new Date(date));
             }
         });
 
@@ -186,9 +197,182 @@ function getEventsForDate(date) {
     const dateString = date.toISOString().split('T')[0];
     return userEvents.filter(event => 
         event.date === dateString && 
-        event.userId === authService.currentUser.uid
+        event.user_id === authService.currentUser.uid
     );
 }
+
+function showDayEventsPanel(date) {
+    const dateString = date.toISOString().split('T')[0];
+    const dayEvents = getEventsForDate(date);
+    
+    const panel = document.createElement('div');
+    panel.className = 'service-modal active';
+    panel.id = 'day-events-panel';
+    
+    const dateDisplay = date.toLocaleDateString('ru-RU', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    panel.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📅 ${dateDisplay}</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="day-events-list" id="day-events-list">
+                    ${dayEvents.length > 0 ? dayEvents.map(event => {
+                        const eventColor = getEventTypeColor(event.type);
+                        return `
+                        <div class="day-event-item ${event.type}" style="border-left-color: ${eventColor}">
+                            <div class="event-header">
+                                <span class="event-time">${event.time || 'Весь день'}</span>
+                                <button class="delete-event-btn" onclick="deleteEvent('${event.id}')" title="Удалить">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="event-title">${event.title}</div>
+                            ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
+                        </div>
+                        `;
+                    }).join('') : '<p class="no-events">📭 На этот день нет запланированных задач</p>'}
+                </div>
+                
+                <button class="add-task-btn" id="show-add-task-form">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    ДОБАВИТЬ ЗАДАЧУ
+                </button>
+                
+                <div class="add-task-form-container" id="add-task-form-container" style="display: none; max-height: 0; overflow: hidden;">
+                    <form id="add-event-form-inline" class="event-form">
+                        <div class="form-group">
+                            <label>Название задачи *</label>
+                            <input type="text" id="event-title-inline" class="form-input" placeholder="Введите название задачи" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Время</label>
+                                <input type="time" id="event-time-inline" class="form-input">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Тип</label>
+                                <select id="event-type-inline" class="form-select">
+                                    <option value="personal">Личное</option>
+                                    <option value="academic">Учебное</option>
+                                    <option value="social">Социальное</option>
+                                    <option value="work">Работа</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Описание</label>
+                            <textarea id="event-description-inline" class="form-textarea" placeholder="Описание задачи..." rows="2"></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" id="cancel-add-task">Отмена</button>
+                            <button type="button" id="submit-event-inline" class="btn-primary">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(panel);
+    
+    const showFormBtn = panel.querySelector('#show-add-task-form');
+    const formContainer = panel.querySelector('#add-task-form-container');
+    const cancelBtn = panel.querySelector('#cancel-add-task');
+    const submitBtn = panel.querySelector('#submit-event-inline');
+    
+    showFormBtn.addEventListener('click', () => {
+        formContainer.style.display = 'block';
+        setTimeout(() => {
+            formContainer.style.maxHeight = '600px';
+            formContainer.style.transition = 'max-height 0.3s ease-in-out';
+        }, 10);
+        showFormBtn.style.display = 'none';
+    });
+    
+    cancelBtn.addEventListener('click', () => {
+        formContainer.style.maxHeight = '0';
+        setTimeout(() => {
+            formContainer.style.display = 'none';
+            showFormBtn.style.display = 'flex';
+        }, 300);
+    });
+    
+    submitBtn.addEventListener('click', async () => {
+        const formData = {
+            title: panel.querySelector('#event-title-inline').value.trim(),
+            date: dateString,
+            time: panel.querySelector('#event-time-inline').value,
+            priority: 'medium',
+            type: panel.querySelector('#event-type-inline').value,
+            description: panel.querySelector('#event-description-inline').value.trim(),
+            user_id: authService.currentUser.uid,
+            university_id: authService.currentUser.profile.universityId || 1,
+            completed: false
+        };
+        
+        if (!formData.title) {
+            alert('Пожалуйста, введите название задачи');
+            return;
+        }
+        
+        try {
+            const createdEvent = await SupabaseDB.createUserEvent(formData);
+            
+            if (createdEvent) {
+                userEvents.push(createdEvent);
+                document.body.removeChild(panel);
+                renderMonthlyCalendar();
+                
+                showNotification('Задача добавлена!', 'success');
+            }
+        } catch (error) {
+            console.error('Ошибка создания события:', error);
+            alert('Не удалось создать событие');
+        }
+    });
+    
+    setupModalHandlers(panel);
+}
+
+async function deleteEvent(eventId) {
+    if (!confirm('Вы уверены, что хотите удалить эту задачу?')) {
+        return;
+    }
+    
+    try {
+        await SupabaseDB.deleteUserEvent(eventId);
+        userEvents = userEvents.filter(e => e.id !== eventId);
+        
+        const panel = document.getElementById('day-events-panel');
+        if (panel) {
+            document.body.removeChild(panel);
+        }
+        
+        renderMonthlyCalendar();
+        showNotification('Задача удалена', 'success');
+    } catch (error) {
+        console.error('Ошибка удаления события:', error);
+        alert('Не удалось удалить событие');
+    }
+}
+
 
 function openAddEventModal(prefilledDate = null) {
     const modal = document.createElement('div');
@@ -234,13 +418,6 @@ function openAddEventModal(prefilledDate = null) {
                         <label>Описание</label>
                         <textarea id="event-description" class="form-textarea" placeholder="Описание события..." rows="3"></textarea>
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Цвет</label>
-                        <div class="color-picker">
-                            <input type="color" id="event-color" value="#2196f3">
-                        </div>
-                    </div>
                 </form>
                 
                 <div class="service-actions">
@@ -267,16 +444,17 @@ function setupEventModalHandlers(modal) {
     setupModalHandlers(modal);
 }
 
-function handleEventSubmission(modal) {
+async function handleEventSubmission(modal) {
     const formData = {
         title: modal.querySelector('#event-title').value.trim(),
         date: modal.querySelector('#event-date').value,
         time: modal.querySelector('#event-time').value,
+        priority: 'medium',
         type: modal.querySelector('#event-type').value,
         description: modal.querySelector('#event-description').value.trim(),
-        color: modal.querySelector('#event-color').value,
-        userId: authService.currentUser.uid,
-        id: Date.now().toString()
+        user_id: authService.currentUser.uid,
+        university_id: authService.currentUser.profile.universityId || 1,
+        completed: false
     };
     
     if (!formData.title) {
@@ -284,13 +462,23 @@ function handleEventSubmission(modal) {
         return;
     }
     
-    userEvents.push(formData);
-    saveUserEvents();
-    
-    document.body.removeChild(modal);
-    renderMonthlyCalendar();
-    
-    showNotification('✅ Событие добавлено в планировщик', 'success');
+    try {
+        const createdEvent = await SupabaseDB.createUserEvent(formData);
+        
+        if (createdEvent) {
+            userEvents.push(createdEvent);
+            
+            document.body.removeChild(modal);
+            renderMonthlyCalendar();
+            
+            showNotification('✅ Событие добавлено в планировщик', 'success');
+        } else {
+            showNotification('❌ Не удалось добавить событие', 'error');
+        }
+    } catch (error) {
+        console.error('Ошибка создания события:', error);
+        showNotification('❌ Ошибка при добавлении события', 'error');
+    }
 }
 
 function openEventDetails(eventId) {
@@ -324,13 +512,22 @@ function openEventDetails(eventId) {
     
     document.body.appendChild(modal);
     
-    modal.querySelector('#delete-event').addEventListener('click', () => {
+    modal.querySelector('#delete-event').addEventListener('click', async () => {
         if (confirm('Удалить это событие?')) {
-            userEvents = userEvents.filter(e => e.id !== eventId);
-            saveUserEvents();
-            document.body.removeChild(modal);
-            renderMonthlyCalendar();
-            showNotification('✅ Событие удалено', 'success');
+            try {
+                const success = await SupabaseDB.deleteUserEvent(eventId);
+                if (success) {
+                    userEvents = userEvents.filter(e => e.id !== eventId);
+                    document.body.removeChild(modal);
+                    renderMonthlyCalendar();
+                    showNotification('✅ Событие удалено', 'success');
+                } else {
+                    showNotification('❌ Не удалось удалить событие', 'error');
+                }
+            } catch (error) {
+                console.error('Ошибка удаления события:', error);
+                showNotification('❌ Ошибка при удалении события', 'error');
+            }
         }
     });
     
@@ -407,13 +604,14 @@ function setupStudentApp() {
     setupServices();
     renderTodaySchedule(); 
     renderNews();
-    renderWeekSchedule(); 
     renderClubs();
+    
+    setupPlannerButton();
     
     setTimeout(() => {
         setupWeekNavigation();
-        setupPlannerButton();
-    }, 200);
+        setupPlannerButton(); 
+    }, 1000);
     
     console.log('setupStudentApp завершен. Текущая неделя:', currentDisplayWeek);
 }
@@ -421,11 +619,22 @@ function setupStudentApp() {
 function setupPlannerButton() {
     const plannerBtn = document.getElementById('planner-btn');
     if (plannerBtn) {
-        plannerBtn.addEventListener('click', openPlanner);
+        plannerBtn.replaceWith(plannerBtn.cloneNode(true));
+        
+        const newPlannerBtn = document.getElementById('planner-btn');
+        newPlannerBtn.addEventListener('click', openPlanner);
         console.log('Обработчик кнопки планировщика установлен');
+    } else {
+        console.log('Кнопка планировщика не найдена, попытка через 500мс...');
+        setTimeout(() => {
+            const retryBtn = document.getElementById('planner-btn');
+            if (retryBtn) {
+                retryBtn.addEventListener('click', openPlanner);
+                console.log('Обработчик кнопки планировщика установлен (повторная попытка)');
+            }
+        }, 500);
     }
 }
-
 function openPlanner() {
     console.log('Открываем планировщик...');
     
@@ -620,12 +829,10 @@ function openPlanner() {
 }
 
 function showDayPlan(selectedDate) {
-    // Убираем выделение с других дней
     document.querySelectorAll('.planner-day-cell').forEach(cell => {
         cell.classList.remove('selected-day');
     });
     
-    // Выделяем выбранный день
     const dateString = selectedDate.toISOString().split('T')[0];
     const selectedCell = [...document.querySelectorAll('.planner-day-cell')].find(cell => {
         const cellDate = cell.getAttribute('data-date') || '';
@@ -637,13 +844,11 @@ function showDayPlan(selectedDate) {
         selectedCell.setAttribute('data-date', dateString);
     }
     
-    // Убираем предыдущий план дня если есть
     const existingPlan = document.querySelector('.day-plan-container');
     if (existingPlan) {
         existingPlan.remove();
     }
     
-    // Создаем контейнер для плана дня
     const planContainer = document.createElement('div');
     planContainer.className = 'day-plan-container';
     
@@ -654,7 +859,6 @@ function showDayPlan(selectedDate) {
         year: 'numeric'
     });
     
-    // Получаем расписание и задачи на выбранный день
     const schedule = getScheduleForDate(selectedDate);
     const tasks = getTasksForDate(selectedDate);
     const isHol = isHoliday(selectedDate);
@@ -662,7 +866,6 @@ function showDayPlan(selectedDate) {
     
     let eventsHtml = '';
     
-    // Добавляем праздник если есть
     if (isHol) {
         eventsHtml += `
             <div class="day-event-item holiday">
@@ -675,7 +878,6 @@ function showDayPlan(selectedDate) {
         `;
     }
     
-    // Добавляем занятия
     if (schedule.length > 0 && !isWeekend && !isHol) {
         schedule.forEach(lesson => {
             eventsHtml += `
@@ -690,7 +892,6 @@ function showDayPlan(selectedDate) {
         });
     }
     
-    // Добавляем задачи
     if (tasks.length > 0) {
         tasks.forEach(task => {
             const priorityIcon = task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢';
@@ -706,7 +907,6 @@ function showDayPlan(selectedDate) {
         });
     }
     
-    // Если нет событий
     if (eventsHtml === '' && !isHol) {
         if (isWeekend) {
             eventsHtml = `
@@ -743,15 +943,12 @@ function showDayPlan(selectedDate) {
         </div>
     `;
     
-    // Добавляем план дня в планировщик
     const plannerBody = document.querySelector('.planner-modal-body');
     if (plannerBody) {
         plannerBody.appendChild(planContainer);
         
-        // Обработчик закрытия плана дня
         planContainer.querySelector('.close-day-plan').addEventListener('click', () => {
             planContainer.remove();
-            // Убираем выделение дня
             document.querySelectorAll('.planner-day-cell').forEach(cell => {
                 cell.classList.remove('selected-day');
             });
@@ -763,14 +960,12 @@ function showAddTaskForm(dateString) {
     const planContainer = document.querySelector('.day-plan-container');
     if (!planContainer) return;
     
-    // Проверяем, есть ли уже форма
     const existingForm = planContainer.querySelector('.add-task-form');
     if (existingForm) {
         existingForm.remove();
         return;
     }
     
-    // Создаем форму добавления задачи
     const taskForm = document.createElement('div');
     taskForm.className = 'add-task-form';
     
@@ -814,11 +1009,9 @@ function showAddTaskForm(dateString) {
         </div>
     `;
     
-    // Добавляем форму в план дня
     const dayContent = planContainer.querySelector('.day-plan-content');
     dayContent.appendChild(taskForm);
     
-    // Фокусируемся на поле ввода
     setTimeout(() => {
         const titleInput = taskForm.querySelector('#inline-task-title');
         if (titleInput) titleInput.focus();
@@ -855,21 +1048,16 @@ function saveInlineTask(dateString) {
         completed: false
     };
     
-    // Добавляем задачу в массив
     userEvents.push(newTask);
     saveUserEvents();
     
-    // Закрываем форму
     closeAddTaskForm();
     
-    // Обновляем отображение плана дня
     const selectedDate = new Date(dateString + 'T00:00:00');
     showDayPlan(selectedDate);
     
-    // Обновляем календарь
     const calendarDays = document.getElementById('planner-calendar-days');
     if (calendarDays) {
-        // Перерисовываем календарь
         const prevBtn = document.querySelector('#prev-month-planner');
         const nextBtn = document.querySelector('#next-month-planner');
         if (prevBtn && nextBtn) {
@@ -1019,8 +1207,9 @@ function setupNavigation() {
             const content = document.getElementById(target);
             content.classList.add('active');            
             if (target === 'schedule') {
-                console.log('Переключились на вкладку расписания, инициализируем навигацию...');
+                console.log('Переключились на вкладку расписания, рендерим расписание...');
                 setTimeout(() => {
+                    renderWeekSchedule();
                     setupWeekNavigation();
                 }, 100);
             }
@@ -1104,11 +1293,22 @@ function getWeekDates(weekOffset = 0) {
 }
 
 
-function getScheduleForWeek() {
+let cachedScheduleData = []; 
+let scheduleAlreadyLoaded = false; 
+
+async function getScheduleForWeek() {
     const universityId = authService.currentUniversity?.id;
     if (!universityId) return [];
     
-    const baseSchedule = getUniversityData('schedule');
+    let baseSchedule = cachedScheduleData;
+    if (cachedScheduleData.length === 0 && !scheduleAlreadyLoaded) {
+        scheduleAlreadyLoaded = true;
+        baseSchedule = await getUniversityDataFromDB('schedule');
+        cachedScheduleData = baseSchedule;
+        console.log('📅 Расписание загружено из БД:', baseSchedule.length);
+        scheduleAlreadyLoaded = false;
+    }
+    
     const weekDates = getWeekDates();
     
     return weekDates.map(weekDay => {
@@ -1141,7 +1341,7 @@ function getRussianDayName(dayIndex) {
     return days[dayIndex];
 }
 
-function renderWeekSchedule() {
+async function renderWeekSchedule() {
     const grid = document.getElementById('schedule-grid');
     if (!grid) return;
 
@@ -1151,7 +1351,7 @@ function renderWeekSchedule() {
 
     grid.innerHTML = '';
 
-    const weekSchedule = getScheduleForWeek();
+    const weekSchedule = await getScheduleForWeek();
     
     console.log('Рендерим расписание для учебной недели:', currentDisplayWeek);
 
@@ -1208,20 +1408,28 @@ function renderWeekSchedule() {
     });
 }
 
-function renderTodaySchedule() {
+async function renderTodaySchedule() {
     const todayContainer = document.getElementById('today-schedule');
     if (!todayContainer) return;
-
-    todayContainer.innerHTML = '';
 
     const today = new Date();
     const dayOfWeek = today.getDay();
     const dayName = getRussianDayName(dayOfWeek);
     
-    console.log('Сегодня:', dayName, 'День недели:', dayOfWeek);
+    console.log('📅 Рендерим сегодняшнее расписание:', dayName);
     
-    const universitySchedule = getUniversityData('schedule');
-    const todaySchedule = universitySchedule.find(day => day.day === dayName);
+    if (cachedScheduleData.length === 0 && !scheduleAlreadyLoaded) {
+        scheduleAlreadyLoaded = true;
+        todayContainer.innerHTML = '<div class="loading">⏳ Загрузка расписания...</div>';
+        const universitySchedule = await getUniversityDataFromDB('schedule');
+        cachedScheduleData = universitySchedule;
+        console.log('📅 Расписание загружено из БД (today):', universitySchedule.length);
+        scheduleAlreadyLoaded = false;
+    }
+    
+    todayContainer.innerHTML = '';
+    
+    const todaySchedule = cachedScheduleData.find(day => day.day === dayName);
 
     if (isWeekend(dayOfWeek) || isHoliday(today)) {
         todayContainer.innerHTML = `
@@ -1271,7 +1479,7 @@ function formatDate(dateString) {
         
         if (isNaN(date.getTime())) {
             console.warn('Невалидная дата:', dateString);
-            return dateString; // Возвращаем оригинальную строку для отладки
+            return dateString;
         }
         
         const today = new Date();
@@ -1302,12 +1510,19 @@ function formatDate(dateString) {
 
 let newsAlreadyRendered = false;
 
-function renderNews() {
-  console.log('Начинаем рендеринг новостей...');
+async function renderNews() {
+  if (newsAlreadyRendered) {
+    console.log('Новости уже рендерятся, пропускаем...');
+    return;
+  }
+  
+  newsAlreadyRendered = true;
+  console.log('Начинаем рендеринг новостей из БД...');
   
   const newsList = document.getElementById('news-list');
   if (!newsList) {
     console.log('Контейнер новостей не найден');
+    newsAlreadyRendered = false;
     return;
   }
 
@@ -1325,8 +1540,8 @@ function renderNews() {
   `;
   newsList.appendChild(newsHeader);
 
-  const universityNews = getUniversityData('news');
-  console.log('Найдено новостей для университета:', universityNews.length);
+  const universityNews = await getUniversityDataFromDB('news');
+  console.log('📰 Найдено новостей для университета:', universityNews.length);
 
   if (universityNews.length === 0) {
     const emptyNews = document.createElement('div');
@@ -1386,13 +1601,15 @@ function renderNews() {
 
   setupNewsHandlers();
   
-  console.log('Новости успешно отрендерены');
+  console.log('✅ Новости успешно отрендерены');
+  newsAlreadyRendered = false;
 }
 
 
-function forceRenderNews() {
-  console.log('Принудительная перерисовка новостей');
-  renderNews();
+async function forceRenderNews() {
+  console.log('🔄 Принудительная перерисовка новостей');
+  newsAlreadyRendered = false; 
+  await renderNews();
 }
 
 function getAuthorWithBadge(news) {
@@ -1912,13 +2129,13 @@ function setupNewsModalHandlers(modal) {
   setupModalHandlers(modal);
 }
 
-function handleNewsSubmission(modal) {
+async function handleNewsSubmission(modal) {
   const title = modal.querySelector('#news-title').value.trim();
   const content = modal.querySelector('#news-content').value.trim();
   const priority = modal.querySelector('input[name="priority"]:checked').value;
   const category = modal.querySelector('#news-category').value;
   
-  console.log('Создание новости:', { title, content, priority, category });
+  console.log('📝 Создание новости:', { title, content, priority, category });
   
   if (!title || !content) {
     alert('Пожалуйста, заполните заголовок и текст новости');
@@ -1926,31 +2143,27 @@ function handleNewsSubmission(modal) {
   }
   
   const newsData = {
-    id: Date.now(),
     university_id: authService.currentUniversity.id,
     title: title,
     content: content,
     author: authService.currentUser.profile.firstName + ' ' + authService.currentUser.profile.lastName,
     priority: priority,
-    category: category,
     date: new Date().toISOString().split('T')[0],
     likes: 0,
     comments: []
   };
   
-  console.log('Данные новости:', newsData);
+  console.log('📋 Данные новости:', newsData);
   
-  mockData.news.push(newsData);
-  console.log('Новостей стало:', mockData.news.length);
-  
-  saveNewsToLocalStorage();
+  const createdNews = await SupabaseDB.createNews(newsData);
+  console.log('✅ Новость создана:', createdNews);
   
   document.body.removeChild(modal);
   
-  showNewsSuccessNotification(newsData);
+  showNewsSuccessNotification(createdNews);
   
-  console.log('Вызываем forceRenderNews');
-  forceRenderNews();
+  console.log('🔄 Обновляем список новостей');
+  await renderNews();
 }
 
 function editNews(newsId) {
@@ -1966,9 +2179,22 @@ function editNews(newsId) {
   alert('Редактирование новости в разработке!');
 }
 
-function deleteNews(newsId) {
-  const news = DataBase.findById('news', newsId);
-  if (!news) return;
+async function deleteNews(newsId) {
+  console.log('🗑️ Попытка удаления новости:', newsId);
+  
+  let news = null;
+  try {
+    const allNews = await getUniversityDataFromDB('news');
+    news = allNews.find(n => n.id === newsId);
+  } catch (error) {
+    console.error('Ошибка загрузки новости:', error);
+    news = mockData.news.find(n => n.id === newsId);
+  }
+  
+  if (!news) {
+    console.log('❌ Новость не найдена');
+    return;
+  }
   
   if (!canUserDeleteNews(news)) {
     alert('❌ У вас нет прав для удаления этой новости');
@@ -1984,8 +2210,7 @@ function deleteNews(newsId) {
   }
   
   if (confirm(confirmMessage)) {
-    DataBase.deleteData('news', newsId);
-    forceRenderNews();
+    await SupabaseDB.deleteNews(newsId);
     
     let successMessage = '✅ Новость удалена';
     if (!isOwnNews) {
@@ -1993,6 +2218,8 @@ function deleteNews(newsId) {
     }
     
     showNotification(successMessage, 'success');
+    
+    await renderNews();
   }
 }
 
@@ -2558,7 +2785,7 @@ function setupEventRegistrationHandlers() {
 function registerUserForEvent(eventId, button) {
     const event = mockData.events.find(e => e.id === eventId);
     if (!event) {
-        console.error('❌ Мероприятие не найдено');
+        console.error('Мероприятие не найдено');
         return;
     }
 
@@ -2760,17 +2987,17 @@ function openCreateClubModal() {
     }, 100);
 }
 
-function handleClubCreation(e) {
+async function handleClubCreation(e) {
     e.preventDefault();
     
     const formData = {
         name: document.getElementById('club-name').value.trim(),
-        desc: document.getElementById('club-desc').value.trim(),
+        description: document.getElementById('club-desc').value.trim(),
         category: document.getElementById('club-category').value,
         icon: document.getElementById('club-icon').value,
         format: document.querySelector('input[name="club-format"]:checked').value,
-        maxMembers: parseInt(document.getElementById('club-max-members').value),
-        meetingDay: document.getElementById('club-meeting-day').value,
+        max_members: parseInt(document.getElementById('club-max-members').value),
+        meeting_day: document.getElementById('club-meeting-day').value,
         contact: document.getElementById('club-contact').value.trim(),
         tags: [...clubFormSelectedTags]
     };
@@ -2785,22 +3012,22 @@ function handleClubCreation(e) {
         return;
     }
     
-    if (!formData.name || !formData.desc || !formData.category || !formData.meetingDay || !formData.contact) {
+    if (!formData.name || !formData.description || !formData.category || !formData.meeting_day || !formData.contact) {
         alert('Пожалуйста, заполните все обязательные поля');
         return;
     }
     
     const newClub = {
-        id: Date.now(),
         university_id: authService.currentUniversity.id,
         ...formData,
         members: 1,
-        activity: 'medium',
-        createdDate: new Date().toISOString().split('T')[0],
-        creator: 'Вы'
+        activity: 'medium'
     };
     
-    mockData.clubs.push(newClub);
+    console.log('📝 Создание клуба:', newClub);
+    
+    const createdClub = await SupabaseDB.createClub(newClub);
+    console.log('✅ Клуб создан:', createdClub);
     
     const modal = document.getElementById('create-club-modal');
     if (modal) {
@@ -2814,11 +3041,10 @@ function handleClubCreation(e) {
         updateClubFormTagsDisplay();
     }
     
-    showClubCreationSuccessNotification(newClub);
+    showClubCreationSuccessNotification(createdClub);
     
-    filterClubs();
-    
-    saveClubsToLocalStorage();
+    clubsAlreadyRendered = false;
+    await renderClubs();
 }
 
 function showClubCreationSuccessNotification(club) {
@@ -3145,12 +3371,12 @@ function resetFilters() {
 }
 
 function filterClubs() {
-  const allUniversityClubs = getUniversityData('clubs');
+  const allUniversityClubs = cachedClubsData.length > 0 ? cachedClubsData : getUniversityData('clubs');
   
   const filteredClubs = allUniversityClubs.filter(club => {
     if (currentFilters.searchText) {
       const searchText = currentFilters.searchText;
-      const searchIn = `${club.name} ${club.desc} ${club.tags.join(' ')}`.toLowerCase();
+      const searchIn = `${club.name} ${club.description || club.desc || ''} ${(club.tags || []).join(' ')}`.toLowerCase();
       if (!searchIn.includes(searchText)) return false;
     }
 
@@ -3301,19 +3527,31 @@ function renderFilteredClubs(clubs) {
   console.log('Клубы отрендерены:', universityClubs.length);
 }
 
-function renderClubs() {
+let clubsAlreadyRendered = false;
+let cachedClubsData = []; 
+
+async function renderClubs() {
+  if (clubsAlreadyRendered) {
+    console.log('⏭️ Клубы уже рендерятся, пропускаем...');
+    return;
+  }
+  
+  clubsAlreadyRendered = true;
+  
   const container = document.getElementById('clubs-list');
   if (!container) {
-    console.log('Контейнер клубов не найден');
+    console.log('❌ Контейнер клубов не найден');
+    clubsAlreadyRendered = false;
     return;
   }
 
-  console.log('Рендерим клубы для университета:', authService.currentUniversity?.name);
+  console.log('🔄 Рендерим клубы для университета:', authService.currentUniversity?.name);
   
   container.innerHTML = '';
 
-  const universityClubs = getUniversityData('clubs');
-  console.log('Найдено клубов:', universityClubs.length);
+  const universityClubs = await getUniversityDataFromDB('clubs');
+  cachedClubsData = universityClubs;
+  console.log('🎭 Найдено клубов:', universityClubs.length);
 
   if (universityClubs.length === 0) {
     container.innerHTML = `
@@ -3324,6 +3562,7 @@ function renderClubs() {
         <button class="reset-btn" onclick="openCreateClubModal()">Создать клуб</button>
       </div>
     `;
+    clubsAlreadyRendered = false;
     return;
   }
 
@@ -3333,6 +3572,7 @@ function renderClubs() {
     if (typeof initializeSmartSearch === 'function') {
       initializeSmartSearch();
     }
+    clubsAlreadyRendered = false;
   }, 50);
 }
 
@@ -3377,11 +3617,11 @@ function setupWeekNavigation() {
             e.stopPropagation();
             console.log('⬅️ Предыдущая неделя. Было:', currentDisplayWeek);
             if (currentDisplayWeek > 1) {
-                await animateWeekTransition('left', () => {
+                await animateWeekTransition('left', async () => {
                     currentDisplayWeek--;
                     console.log('Стало:', currentDisplayWeek);
                     updateWeekDisplay();
-                    renderWeekSchedule();
+                    await renderWeekSchedule();
                 });
             } else {
                 console.log('Достигнута первая неделя');
@@ -3395,11 +3635,11 @@ function setupWeekNavigation() {
             console.log('➡️ Следующая неделя. Было:', currentDisplayWeek);
             
             if (currentDisplayWeek < 52) {
-                await animateWeekTransition('right', () => {
+                await animateWeekTransition('right', async () => {
                     currentDisplayWeek++;
                     console.log('Стало:', currentDisplayWeek);
                     updateWeekDisplay();
-                    renderWeekSchedule();
+                    await renderWeekSchedule();
                 });
             } else {
                 console.log('Достигнута последняя неделя учебного года');
@@ -3511,9 +3751,10 @@ function formatWeekRange(startDate, endDate) {
     }
 }
 
-// Обработчик для кнопки планировщика будет добавлен в reinitializeApp() в auth.js
 
-function openPlanner() {
+async function openPlanner() {
+    await loadUserEvents();
+    
     const modal = document.createElement('div');
     modal.className = 'service-modal active planner-modal-overlay';
     
@@ -3673,7 +3914,7 @@ function getLessonsForDate(date) {
     const dayName = dayNames[date.getDay()];
     
     try {
-        const universitySchedule = getUniversityData('schedule');
+        const universitySchedule = cachedScheduleData.length > 0 ? cachedScheduleData : getUniversityData('schedule');
         if (!universitySchedule) return [];
         
         const daySchedule = universitySchedule.find(day => day.day === dayName);
@@ -3682,6 +3923,10 @@ function getLessonsForDate(date) {
         console.error('Ошибка получения расписания:', error);
         return [];
     }
+}
+
+function getScheduleForDate(date) {
+    return getLessonsForDate(date);
 }
 
 function openDayDetailsModal(date, lessons, tasks, holidayInfo) {
@@ -3786,7 +4031,6 @@ function openDayDetailsModal(date, lessons, tasks, holidayInfo) {
 }
 
 window.openAddTaskModalForDate = function(dateString) {
-    // Закрываем модальное окно деталей дня
     const existingDayModal = document.querySelector('.day-detail-modal');
     if (existingDayModal) {
         existingDayModal.style.display = 'none';
@@ -3801,7 +4045,7 @@ function getTasksForDate(date) {
     const dateString = date.toISOString().split('T')[0];
     return userEvents.filter(event => 
         event.date === dateString && 
-        event.userId === authService.currentUser.uid
+        event.user_id === authService.currentUser.uid
     );
 }
 
@@ -3908,16 +4152,16 @@ function openAddTaskModal(prefilledDate, parentModal, dayModal) {
     });
 }
 
-function handleTaskSubmission(taskModal, parentModal, dayModal) {
+async function handleTaskSubmission(taskModal, parentModal, dayModal) {
     const formData = {
         title: taskModal.querySelector('#task-title').value.trim(),
         date: taskModal.querySelector('#task-date').value,
-        time: taskModal.querySelector('#task-time').value,
+        time: taskModal.querySelector('#task-time').value || null,
         priority: taskModal.querySelector('input[name="task-priority"]:checked').value,
         type: taskModal.querySelector('#task-category').value,
-        description: taskModal.querySelector('#task-description').value.trim(),
-        userId: authService.currentUser.uid,
-        id: Date.now().toString(),
+        description: taskModal.querySelector('#task-description').value.trim() || null,
+        user_id: authService.currentUser.uid,
+        university_id: authService.currentUser.universityId || 1,
         completed: false
     };
     
@@ -3926,17 +4170,21 @@ function handleTaskSubmission(taskModal, parentModal, dayModal) {
         return;
     }
     
-    userEvents.push(formData);
-    saveUserEvents();
+    const savedEvent = await SupabaseDB.createUserEvent(formData);
+    if (savedEvent) {
+        userEvents.push(savedEvent);
+        showNotification('✅ Задача добавлена в планировщик', 'success');
+    } else {
+        showNotification('❌ Ошибка сохранения задачи', 'error');
+        return;
+    }
     
     document.body.removeChild(taskModal);
     
-    // Закрываем модальное окно деталей дня
     if (dayModal) {
         document.body.removeChild(dayModal);
     }
     
-    // Перерисовываем календарь в планировщике
     const plannerCalendar = document.querySelector('.planner-modal-overlay');
     if (plannerCalendar) {
         const renderBtn = document.querySelector('#prev-month');
@@ -3955,8 +4203,6 @@ function handleTaskSubmission(taskModal, parentModal, dayModal) {
             setTimeout(() => renderFunc.nextElementSibling.nextElementSibling.click(), 10);
         }
     }
-    
-    showNotification('✅ Задача добавлена в планировщик', 'success');
 }
 
 function openTaskDetails(taskId) {
@@ -4016,22 +4262,34 @@ function openTaskDetails(taskId) {
     
     document.body.appendChild(detailModal);
     
-    detailModal.querySelector('#delete-task').addEventListener('click', () => {
+    detailModal.querySelector('#delete-task').addEventListener('click', async () => {
         if (confirm('Удалить эту задачу?')) {
-            userEvents = userEvents.filter(e => e.id !== taskId);
-            saveUserEvents();
-            document.body.removeChild(detailModal);
-            showNotification('✅ Задача удалена', 'success');
+            const deleted = await SupabaseDB.deleteUserEvent(taskId);
+            if (deleted) {
+                userEvents = userEvents.filter(e => e.id !== taskId);
+                document.body.removeChild(detailModal);
+                showNotification('✅ Задача удалена', 'success');
+                renderMonthlyCalendar();
+            } else {
+                showNotification('❌ Ошибка удаления задачи', 'error');
+            }
         }
     });
     
-    detailModal.querySelector('#toggle-complete').addEventListener('click', () => {
+    detailModal.querySelector('#toggle-complete').addEventListener('click', async () => {
         const taskIndex = userEvents.findIndex(e => e.id === taskId);
         if (taskIndex !== -1) {
-            userEvents[taskIndex].completed = !userEvents[taskIndex].completed;
-            saveUserEvents();
-            document.body.removeChild(detailModal);
-            showNotification(userEvents[taskIndex].completed ? '✅ Задача выполнена!' : '🔄 Задача возвращена в работу', 'success');
+            const newStatus = !userEvents[taskIndex].completed;
+            
+            const updated = await SupabaseDB.updateUserEvent(taskId, { completed: newStatus });
+            if (updated) {
+                userEvents[taskIndex].completed = newStatus;
+                document.body.removeChild(detailModal);
+                showNotification(newStatus ? '✅ Задача выполнена!' : '🔄 Задача возвращена в работу', 'success');
+                renderMonthlyCalendar();
+            } else {
+                showNotification('❌ Ошибка обновления задачи', 'error');
+            }
         }
     });
     
