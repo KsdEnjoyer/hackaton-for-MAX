@@ -1,5 +1,3 @@
-// === MAX mini-app logic ===
-
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });

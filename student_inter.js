@@ -1305,7 +1305,7 @@ async function getScheduleForWeek() {
         scheduleAlreadyLoaded = true;
         baseSchedule = await getUniversityDataFromDB('schedule');
         cachedScheduleData = baseSchedule;
-        console.log('📅 Расписание загружено из БД:', baseSchedule.length);
+        console.log('Расписание загружено из БД:', baseSchedule.length);
         scheduleAlreadyLoaded = false;
     }
     
@@ -1601,13 +1601,13 @@ async function renderNews() {
 
   setupNewsHandlers();
   
-  console.log('✅ Новости успешно отрендерены');
+  console.log('Новости успешно отрендерены');
   newsAlreadyRendered = false;
 }
 
 
 async function forceRenderNews() {
-  console.log('🔄 Принудительная перерисовка новостей');
+  console.log('Принудительная перерисовка новостей');
   newsAlreadyRendered = false; 
   await renderNews();
 }
@@ -2135,7 +2135,7 @@ async function handleNewsSubmission(modal) {
   const priority = modal.querySelector('input[name="priority"]:checked').value;
   const category = modal.querySelector('#news-category').value;
   
-  console.log('📝 Создание новости:', { title, content, priority, category });
+  console.log('Создание новости:', { title, content, priority, category });
   
   if (!title || !content) {
     alert('Пожалуйста, заполните заголовок и текст новости');
@@ -2153,16 +2153,16 @@ async function handleNewsSubmission(modal) {
     comments: []
   };
   
-  console.log('📋 Данные новости:', newsData);
+  console.log('Данные новости:', newsData);
   
   const createdNews = await SupabaseDB.createNews(newsData);
-  console.log('✅ Новость создана:', createdNews);
+  console.log('Новость создана:', createdNews);
   
   document.body.removeChild(modal);
   
   showNewsSuccessNotification(createdNews);
   
-  console.log('🔄 Обновляем список новостей');
+  console.log('Обновляем список новостей');
   await renderNews();
 }
 
@@ -2180,7 +2180,7 @@ function editNews(newsId) {
 }
 
 async function deleteNews(newsId) {
-  console.log('🗑️ Попытка удаления новости:', newsId);
+  console.log('Попытка удаления новости:', newsId);
   
   let news = null;
   try {
@@ -2192,7 +2192,7 @@ async function deleteNews(newsId) {
   }
   
   if (!news) {
-    console.log('❌ Новость не найдена');
+    console.log('Новость не найдена');
     return;
   }
   
@@ -2405,7 +2405,7 @@ function openRoomBooking() {
                     
                     <div class="form-group">
                         <label>Контактные данные:</label>
-                        <input type="text" id="booking-contact" class="form-input" placeholder="Ваш Telegram или email" required>
+                        <input type="text" id="booking-contact" class="form-input" placeholder="Ваш МАХ или email" required>
                     </div>
                 </form>
                 
@@ -3024,10 +3024,10 @@ async function handleClubCreation(e) {
         activity: 'medium'
     };
     
-    console.log('📝 Создание клуба:', newClub);
+    console.log('Создание клуба:', newClub);
     
     const createdClub = await SupabaseDB.createClub(newClub);
-    console.log('✅ Клуб создан:', createdClub);
+    console.log('Клуб создан:', createdClub);
     
     const modal = document.getElementById('create-club-modal');
     if (modal) {
@@ -4750,7 +4750,7 @@ function openDormitoryService() {
                         
                         <div class="form-group">
                             <label>Контакт для связи *</label>
-                            <input type="text" id="issue-contact" class="form-input" placeholder="Телефон или Telegram" required>
+                            <input type="text" id="issue-contact" class="form-input" placeholder="Телефон или МАХ" required>
                         </div>
                     </form>
                     

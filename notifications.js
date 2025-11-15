@@ -1,24 +1,18 @@
-// ==================== СИСТЕМА УВЕДОМЛЕНИЙ ====================
 
 let notificationsCache = [];
 let unreadCount = 0;
 
-// Инициализация системы уведомлений
 async function initializeNotifications() {
     const notifBtn = document.getElementById('notifications-btn');
     if (!notifBtn) return;
 
-    // Загружаем уведомления при запуске
     await loadNotifications();
 
-    // Обработчик клика на кнопку
     notifBtn.addEventListener('click', openNotificationsPanel);
 
-    // Периодически проверяем новые уведомления (каждые 30 сек)
     setInterval(loadNotifications, 30000);
 }
 
-// Загрузка уведомлений из БД
 async function loadNotifications() {
     if (!authService.currentUser) return;
 
@@ -32,7 +26,6 @@ async function loadNotifications() {
     }
 }
 
-// Обновление значка с количеством
 function updateNotificationBadge(count) {
     const badge = document.querySelector('.notification-badge');
     if (!badge) return;
@@ -45,7 +38,6 @@ function updateNotificationBadge(count) {
     }
 }
 
-// Открытие панели уведомлений
 function openNotificationsPanel() {
     const existingPanel = document.getElementById('notifications-panel');
     if (existingPanel) {
@@ -68,16 +60,13 @@ function openNotificationsPanel() {
 
     document.body.appendChild(panel);
 
-    // Анимация появления
     setTimeout(() => panel.classList.add('active'), 10);
 
-    // Обработчики
     panel.querySelector('.close-panel-btn').addEventListener('click', () => {
         panel.classList.remove('active');
         setTimeout(() => document.body.removeChild(panel), 300);
     });
 
-    // Закрытие при клике вне панели
     panel.addEventListener('click', (e) => {
         if (e.target === panel) {
             panel.classList.remove('active');
@@ -86,7 +75,6 @@ function openNotificationsPanel() {
     });
 }
 
-// Рендер списка уведомлений
 function renderNotificationsList() {
     if (notificationsCache.length === 0) {
         return `
@@ -110,7 +98,6 @@ function renderNotificationsList() {
     `).join('');
 }
 
-// Получение иконки по типу уведомления
 function getNotificationIcon(type) {
     const icons = {
         question_answer: '💬',
@@ -122,7 +109,6 @@ function getNotificationIcon(type) {
     return icons[type] || icons.default;
 }
 
-// Форматирование времени
 function formatNotificationTime(timestamp) {
     const date = new Date(timestamp);
     const now = new Date();
@@ -140,22 +126,18 @@ function formatNotificationTime(timestamp) {
     return date.toLocaleDateString('ru-RU');
 }
 
-// Пометить уведомление как прочитанное
 async function markAsRead(notificationId) {
     try {
         await SupabaseDB.markNotificationAsRead(notificationId);
         
-        // Обновляем кеш
         const index = notificationsCache.findIndex(n => n.id === notificationId);
         if (index !== -1) {
             notificationsCache[index].is_read = true;
         }
         
-        // Пересчитываем непрочитанные
         unreadCount = notificationsCache.filter(n => !n.is_read).length;
         updateNotificationBadge(unreadCount);
         
-        // Обновляем UI
         const item = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
         if (item) {
             item.classList.remove('unread');
@@ -168,7 +150,6 @@ async function markAsRead(notificationId) {
     }
 }
 
-// Создание уведомления (вызывается после отправки вопроса/заявки)
 async function createNotification(userId, type, title, message, link = null) {
     try {
         const notificationData = {
@@ -187,7 +168,6 @@ async function createNotification(userId, type, title, message, link = null) {
     }
 }
 
-// Экспортируем функции
 window.initializeNotifications = initializeNotifications;
 window.createNotification = createNotification;
 window.loadNotifications = loadNotifications;

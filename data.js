@@ -238,7 +238,6 @@ staff: [
   ],
 
     schedule: [
-          // Университет 1 - Университет имени Куарта
           {
               university_id: 1,
               day: "Понедельник",
@@ -288,7 +287,6 @@ staff: [
               ]
           },
 
-          // Университет 2 - Магический политех
           {
               university_id: 2,
               day: "Понедельник",
@@ -390,7 +388,6 @@ staff: [
     }
   ],
 
-  // 🔥 ДОБАВЛЯЕМ КЛУБЫ
   clubs: [
     { 
         id: 1,
@@ -402,7 +399,7 @@ staff: [
         contact: "@art_club_max",
         category: "creative",
         tags: ["рисование", "живопись", "графика", "выставки", "творчество"],
-        activity: "high", // low, medium, high
+        activity: "high", 
         meetingDay: "пятница"
     },
     { 
@@ -561,7 +558,7 @@ staff: [
       location: "Главный корпус",
       type: "hackathon",
       capacity: 50,
-      registeredUsers: [/* массив ID пользователей */],
+      registeredUsers: [],
       status: "registration_open",
       organizer: "IT-клуб",
       tags: ["программирование", "соревнование", "IT"],
@@ -673,16 +670,14 @@ staff: [
   }  
 };
 
-// Функция для получения текущей недели
 function getCurrentWeek() {
   const today = new Date();
-  const startDate = new Date("2025-09-01"); // начало семестра
+  const startDate = new Date("2025-09-01"); 
   const diffTime = today - startDate;
   const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
   return diffWeeks + 1;
 }
 
-// 🔧 УТИЛИТЫ ДЛЯ РАБОТЫ С МУЛЬТИ-УНИВЕРСИТЕТСКИМИ ДАННЫМИ
 function getUniversityData(dataType, universityId = null) {
     const targetUniversityId = universityId || (authService?.currentUniversity?.id);
     
@@ -699,13 +694,10 @@ function getUniversityData(dataType, universityId = null) {
     return data;
 }
 
-// Получить все данные (для админов и т.д.)
 function getAllData(dataType) {
   return mockData[dataType] || [];
 }
 
-// 🔧 ФУНКЦИИ ДЛЯ СОВМЕСТИМОСТИ СО СТАРЫМ КОДОМ
-// Временные функции, которые будем постепенно заменять
 function getCurrentUserData() {
   return authService.currentUser?.profile || { 
     group: "Не авторизован", 
@@ -729,7 +721,6 @@ function getMockData() {
 }
 
 class DataBase {
-  // 🔹 ПОЛУЧИТЬ ДАННЫЕ ПО ТИПУ И УНИВЕРСИТЕТУ
   static getData(dataType, universityId = null) {
     if (!mockData[dataType]) {
       console.error(`❌ Тип данных "${dataType}" не найден`);
@@ -743,24 +734,21 @@ class DataBase {
     return mockData[dataType];
   }
 
-  // 🔹 ДОБАВИТЬ НОВЫЕ ДАННЫЕ
   static addData(dataType, newItem) {
     if (!mockData[dataType]) {
       console.error(`❌ Тип данных "${dataType}" не найден`);
       return false;
     }
 
-    // Генерируем ID если нет
     if (!newItem.id) {
       newItem.id = this.generateId();
     }
 
     mockData[dataType].push(newItem);
-    console.log(`✅ Добавлено в ${dataType}:`, newItem);
+    console.log(`Добавлено в ${dataType}:`, newItem);
     return true;
   }
 
-  // 🔹 ОБНОВИТЬ ДАННЫЕ
   static updateData(dataType, id, updates) {
     if (!mockData[dataType]) {
       console.error(`❌ Тип данных "${dataType}" не найден`);
@@ -774,14 +762,13 @@ class DataBase {
     }
 
     mockData[dataType][index] = { ...mockData[dataType][index], ...updates };
-    console.log(`✅ Обновлено в ${dataType}:`, mockData[dataType][index]);
+    console.log(`Обновлено в ${dataType}:`, mockData[dataType][index]);
     return true;
   }
 
-  // 🔹 УДАЛИТЬ ДАННЫЕ
   static deleteData(dataType, id) {
     if (!mockData[dataType]) {
-      console.error(`❌ Тип данных "${dataType}" не найден`);
+      console.error(`Тип данных "${dataType}" не найден`);
       return false;
     }
 
@@ -789,31 +776,28 @@ class DataBase {
     mockData[dataType] = mockData[dataType].filter(item => item.id !== id);
     
     if (mockData[dataType].length === initialLength) {
-      console.error(`❌ Объект с ID ${id} не найден в ${dataType}`);
+      console.error(`Объект с ID ${id} не найден в ${dataType}`);
       return false;
     }
 
-    console.log(`✅ Удалено из ${dataType}, ID: ${id}`);
+    console.log(`Удалено из ${dataType}, ID: ${id}`);
     return true;
   }
 
-  // 🔹 НАЙТИ ПО ID
   static findById(dataType, id) {
     if (!mockData[dataType]) {
-      console.error(`❌ Тип данных "${dataType}" не найден`);
+      console.error(`Тип данных "${dataType}" не найден`);
       return null;
     }
 
     return mockData[dataType].find(item => item.id === id) || null;
   }
 
-  // 🔹 СГЕНЕРИРОВАТЬ ID
   static generateId() {
     return Date.now() + Math.floor(Math.random() * 1000);
   }
 }
 
-// 🔥 СТАРЫЕ ФУНКЦИИ ДЛЯ СОВМЕСТИМОСТИ
 function getUniversityData(dataType) {
   if (!authService.currentUniversity) return [];
   return DataBase.getData(dataType, authService.currentUniversity.id);

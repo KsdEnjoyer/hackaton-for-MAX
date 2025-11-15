@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Учебный портал MAX</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <script src="auth.js"></script>
@@ -89,7 +88,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно формы задачи/вопроса -->
 <div id="issueModal" class="service-modal hidden">
     <div class="modal-content">
         <div class="modal-header">
@@ -98,7 +96,6 @@
         </div>
         <div class="modal-body">
             <form class="issue-form">
-                <!-- Выбор категории -->
                 <div class="form-group">
                     <label>Категория вопроса</label>
                     <div class="category-options">
@@ -121,20 +118,17 @@
                     </div>
                 </div>
 
-                <!-- Тема вопроса -->
                 <div class="form-group">
                     <label for="issueSubject">Тема вопроса</label>
                     <input type="text" id="issueSubject" class="form-input" placeholder="Кратко опишите суть вопроса..." required>
                 </div>
 
-                <!-- Детальное описание -->
                 <div class="form-group">
                     <label for="issueDescription">Подробное описание</label>
                     <textarea id="issueDescription" class="form-textarea" placeholder="Опишите проблему максимально подробно..." required></textarea>
                     <div class="char-counter"><span id="descCount">0</span>/500 символов</div>
                 </div>
 
-                <!-- Приоритет -->
                 <div class="form-group">
                     <label>Приоритет</label>
                     <div class="priority-selector">
@@ -150,7 +144,6 @@
                     </div>
                 </div>
 
-                <!-- Загрузка файлов -->
                 <div class="form-group">
                     <label>Прикрепить файлы (если нужно)</label>
                     <div class="file-upload-area" id="fileUploadArea">
@@ -162,7 +155,6 @@
                     <div class="file-preview" id="filePreview"></div>
                 </div>
 
-                <!-- Предпросмотр -->
                 <div class="issue-preview hidden" id="issuePreview">
                     <div class="preview-header">
                         <h4>👁️ Предпросмотр</h4>

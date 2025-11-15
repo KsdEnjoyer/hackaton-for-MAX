@@ -539,7 +539,7 @@ showUniversitySelection() {
                             <div class="form-group">
                                 <label>UID / Student ID:</label>
                                 <input type="text" id="university-uid" required 
-                                       placeholder="Введите ваш UID (например: q466123)">
+                                       placeholder="Введите ваш UID (для тестировки: 123)">
                             </div>
                             <div class="form-group">
                                 <label>Пароль:</label>
